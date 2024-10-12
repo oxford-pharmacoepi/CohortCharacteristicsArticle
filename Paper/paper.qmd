@@ -1,0 +1,17 @@
+---
+title: "CohortCharacteristics: An R package to characterise population cohorts using the OMOP common data model"
+format: docx
+editor: visual
+---
+
+## Abstract
+
+## Introduction
+
+## Methods
+
+## Results
+
+## Conclusions
+
+## References
