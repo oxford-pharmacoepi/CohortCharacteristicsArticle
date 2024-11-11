@@ -1,33 +1,66 @@
+# Install dependencies -----
+#install.packages("renv") # if not already installed, install renv from CRAN
+# run renv::install() and renv::restore() this should prompt you to install the various packages required for the study
+renv::activate()
+renv::restore()
 
-# renv::activate()
-# renv::restore()
-
-library(CohortCharacteristics)
 library(CDMConnector)
+library(DrugUtilisation)
+library(purrr)
+library(CodelistGenerator)
 library(DBI)
+library(log4r)
+library(dplyr)
 library(here)
-library(OmopSketch)
+library(RPostgres)
+library(SqlRender)
+library(zip)
+library(readr)
+library(CohortCharacteristics)
 library(PatientProfiles)
+library(snakecase)
+library(readr)
+library(CohortSurvival)
+library(CirceR)
+library(IncidencePrevalence)
+library(OmopSketch)
+# Connect to database ----
+# please see examples how to connect to the database here:
+# https://darwin-eu.github.io/CDMConnector/articles/a04_DBI_connection_examples.html
+db <- dbConnect("...")
 
-# create a connection to your database
-con <- dbConnect("...")
-
-# cdm schema of your database, this schema must contain your omop tables
+# parameters to connect to create cdm object ----
+# name of the schema where cdm tables are located
 cdmSchema <- "..."
 
-# write schema of your database, this schema will be used to write intermediate
-# tables all intermediate tables will be drop by last command, comment it out
-# if you wish to keep those intermediate tables.
+# name of a schema in the database where you have writing permission
 writeSchema <- "..."
 
-# name of your cdm instance
-cdmName <- "..."
+# combination of at least 5 letters + _ (eg. "abcde_") that will lead any table
+# written in the write schema
+writePrefix <- "..."
 
-# count under this snumber will be suppressed
+# name of the database, use acronym in capital letters (eg. "CPRD GOLD")
+#PLEASE USE ONE OF BELOW FOR YOUR CORRESPONDING DATABASE NAME THAT MATCHES THE PROTOCOL
+# "SIDIAP"
+# "IPCI"
+# "DK-DHR" 
+# "IQVIA DA Germany"
+# "IQVIA LPD Belgium" 
+# "NAJS Croatia"
+
+db_name <- "..."
+
+# minimum number of counts to be reported
 minCellCount <- 5
+#create cdm object
+cdm <- cdm_from_con(
+  db,
+  cdm_schema = cdmSchema, 
+  write_schema = c(schema = writeSchema,
+                   prefix = writePrefix)
+)
 
-# run study
-source(here("RunStudy.R"))
+# Run the study code ----
+source(here("runStudy.R"))
 
-# delete intermediate tables
-source(here("CleanTables.R"))

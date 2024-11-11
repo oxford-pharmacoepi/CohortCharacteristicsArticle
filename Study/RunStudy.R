@@ -1,57 +1,51 @@
-# source needed functions ----
-source(here("Analyses", "helpers.R"))
+# start log --------------------------------------------------------------------
+dir.create(here("Results"))
+output_folder <- here("Results")
+log_file <- paste0(output_folder, "/log_",Sys.Date(),".txt")
+logger <- create.logger(logfile = log_file, level = "INFO")
+info(logger = logger, "START RUN STUDY")
 
-# parameters ----
-results <- here("Results")
-if (!dir.exists(results)) dir.create(results)
-createLogger(results, cdmName)
-log("Log created")
-ageGroup <- list(c(0, 19), c(20, 39), c(40, 59), c(60, 79), c(80, Inf))
-strata <- omopgenerics::combineStrata(c("age_group", "sex"))
+# if SIDIAP filter cdm$drug_exposure
+if (db_name == "SIDIAP") {
+  info(logger, "FILTER DRUG EXPOSURE TABLE")
+  cdm$drug_exposure <- cdm$drug_exposure %>%
+    filter(drug_type_concept_id == 32839) %>%
+    compute()
+}
 
-# create the cdm object ----
-log("creating cdm object")
-cdm <- cdmFromCon(
-  con = con, cdmSchema = cdmSchema, writeSchema = writeSchema, cdmName = cdmName
+
+# Parameters -------------------------------------------------------------------
+info(logger, 'DEFINE PARAMETERS')
+drug_cohort_name   <- "drug_cohort"
+drug_route_cohort <- "drug_route_cohort"
+com_cohort <- "comorbidities_cohort"
+ind_cohort <- "indication_cohort"
+studyStartDate <- as.Date("2013-01-01")
+studyEndDate   <- as.Date("2023-12-31")
+minCount <- 5
+
+# cdm snapshot --------------------------- -------------------------------------
+info(logger, 'CREATE SNAPSHOT')
+snapshot <- cdm |> OmopSketch::summariseOmopSnapshot()
+# generate cohorts -------------------------------------------------------------
+info(logger, 'INSTANTIATE COHORTS')
+source(here("cohortCreation.R"))
+
+# study code -------------------------------------------------------------
+info(logger, 'RUN STUDY')
+source(here("studyCode.R"))
+# zip all results ----
+info(logger, "zip all results")
+
+zip(
+  zipfile = here(
+    output_folder, paste0("P3-C1-012-StudyResults-", db_name, ".zip")
+  ),
+  files = list.files(output_folder),
+  root = output_folder
 )
 
-# export cdm snapshot ----
-log("extract cdm snapshot")
-resultSnapshot <- summariseOmopSnapshot(cdm = cdm)
 
-# create cohorts ----
-cdm <- generateConceptCohortSet(
-  cdm = cdm,
-  conceptSet = list(sinusitis = c(4294548, 40481087, 257012)),
-  limit = "all",
-  end = 0,
-  name = "my_cohort"
-)
 
-# add stratification ----
-log("add demographics")
-cdm$my_cohort <- cdm$my_cohort |>
-  addDemographics(
-    age = FALSE,
-    ageGroup = ageGroup,
-    sex = TRUE,
-    priorObservation = FALSE,
-    futureObservation = FALSE,
-    dateOfBirth = FALSE,
-    name = "my_cohort")
 
-# summarise counts ----
-log("summarise counts")
-resultCounts <- summariseCohortCount(cdm$my_cohort, strata = strata)
 
-# export results -----
-log("results exported")
-exportSummarisedResult(
-  resultSnapshot,
-  resultCounts,
-  minCellCount = minCellCount,
-  path = results
-)
-
-log("STUDY FINISHED")
-log("results in: '{results}'")
