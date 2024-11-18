@@ -45,6 +45,7 @@ omopgenerics::exportCodelist(codelist, path = here::here("Codelists"), type = "c
 # omopgenerics::exportCodelist(codes, path = here::here("Codelists"), type = "csv")
 
 codes <- CodelistGenerator::getATCCodes(cdm = cdm)
+names(codes) <- substr(names(codes), 3, nchar(names(codes)))
 omopgenerics::exportCodelist(codes, path = here::here("Codelists", "Table 1 medications"), type = "csv")
 
 codes <- CodelistGenerator::getICD10StandardCodes(cdm = cdm, level = "ICD10 Chapter")
