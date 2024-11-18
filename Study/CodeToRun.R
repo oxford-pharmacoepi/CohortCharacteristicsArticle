@@ -24,6 +24,7 @@ library(CohortSurvival)
 library(CirceR)
 library(IncidencePrevalence)
 library(OmopSketch)
+
 # Connect to database ----
 # please see examples how to connect to the database here:
 # https://darwin-eu.github.io/CDMConnector/articles/a04_DBI_connection_examples.html
@@ -49,17 +50,12 @@ writePrefix <- "..."
 # "IQVIA LPD Belgium" 
 # "NAJS Croatia"
 
-db_name <- "..."
+dbName <- "..."
 
 # minimum number of counts to be reported
 minCellCount <- 5
 #create cdm object
-cdm <- cdm_from_con(
-  db,
-  cdm_schema = cdmSchema, 
-  write_schema = c(schema = writeSchema,
-                   prefix = writePrefix)
-)
+
 
 # Run the study code ----
 source(here("runStudy.R"))

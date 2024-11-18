@@ -4,4 +4,4 @@
 .Ruserdata
 /Study/Results/*.txt
 /Study/Results/*.csv
-/Study/CodeToRunEunomia.R
+.DS_store
