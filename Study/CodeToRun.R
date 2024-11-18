@@ -4,11 +4,12 @@
 renv::activate()
 renv::restore()
 
-library(DBI)
-
 # Connect to database ----
 # please see examples how to connect to the database here:
 # https://darwin-eu.github.io/CDMConnector/articles/a04_DBI_connection_examples.html
+library(DBI)
+library(RPostgres)
+
 db <- dbConnect("...")
 
 # parameters to connect to create cdm object ----
@@ -23,21 +24,10 @@ writeSchema <- "..."
 writePrefix <- "..."
 
 # name of the database, use acronym in capital letters (eg. "CPRD GOLD")
-#PLEASE USE ONE OF BELOW FOR YOUR CORRESPONDING DATABASE NAME THAT MATCHES THE PROTOCOL
-# "SIDIAP"
-# "IPCI"
-# "DK-DHR" 
-# "IQVIA DA Germany"
-# "IQVIA LPD Belgium" 
-# "NAJS Croatia"
-
 dbName <- "..."
 
 # minimum number of counts to be reported
 minCellCount <- 5
-#create cdm object
 
-
-# Run the study code ----
-source(here("runStudy.R"))
-
+# Run the study code
+source(here::here("RunStudy.R"))
