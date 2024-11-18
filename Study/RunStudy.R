@@ -1,12 +1,14 @@
 # start log --------------------------------------------------------------------
-dir.create(here("Results"))
-output_folder <- here("Results")
-log_file <- paste0(output_folder, "/log_", Sys.Date(),".txt")
-logger <- create.logger(logfile = log_file, level = "INFO")
-info(logger = logger, "START RUN STUDY")
+output_folder <- here::here("Results")
+dir.create(output_folder, showWarnings = FALSE)
+log_file <- file.path(output_folder, paste0(
+  "/log_", dbName, "_", format(Sys.time(), "%d_%m_%Y_%H_%M_%S"),".txt"
+))
+logger <- log4r::create.logger(logfile = log_file, level = "INFO")
+log4r::info(logger = logger, "START RUN STUDY")
 
 # create cdm object ------------------------------------------------------------
-info(logger, "CREATE CDM OBJECT")
+log4r::info(logger, "CREATE CDM OBJECT")
 cdm <- CDMConnector::cdmFromCon(
   con = db,
   cdmSchema = cdmSchema, 
@@ -15,11 +17,11 @@ cdm <- CDMConnector::cdmFromCon(
 )
 
 # if SIDIAP filter cdm$drug_exposure
-if (db_name == "SIDIAP") {
-  info(logger, "FILTER DRUG EXPOSURE TABLE (SIDIAP ONLY)")
+if (omopgenerics::cdmName(cdm) == "SIDIAP") {
+  log4r::info(logger, "FILTER DRUG EXPOSURE TABLE (SIDIAP ONLY)")
   cdm$drug_exposure <- cdm$drug_exposure |>
-    filter(drug_type_concept_id == 32839) |>
-    compute()
+    dplyr::filter(drug_type_concept_id == 32839) |>
+    dplyr::compute()
 }
 
 # Parameters -------------------------------------------------------------------
@@ -30,12 +32,12 @@ studyStartDate <- as.Date("2013-01-01")
 studyEndDate   <- as.Date("2023-12-31")
 
 # cdm snapshot -----------------------------------------------------------------
-info(logger, 'CREATE SNAPSHOT')
+log4r::info(logger, 'CREATE SNAPSHOT')
 snapshot <- OmopSketch::summariseOmopSnapshot(cdm)
 
 # generate cohorts -------------------------------------------------------------
-info(logger, 'INSTANTIATE COHORTS')
-info(logger, "read codelists")
+log4r::info(logger, 'INSTANTIATE COHORTS')
+log4r::info(logger, "read codelists")
 codelistsIndex <- omopgenerics::importCodelist(here::here("Codelists"), "csv")
 codelistMedications <- omopgenerics::importCodelist(
   path = here::here("Codelists", "table 1 medications"), type = "csv"
@@ -48,7 +50,7 @@ iDrugs <- "index_drugs"
 iConditions <- "index_conditions"
 iInsomnia <- "index_insomnia"
 
-info(logger, "instantiate drug index cohort")
+log4r::info(logger, "instantiate drug index cohort")
 cdm <- DrugUtilisation::generateDrugUtilisationCohortSet(
   cdm = cdm, 
   name = iDrugs, 
@@ -57,7 +59,7 @@ cdm <- DrugUtilisation::generateDrugUtilisationCohortSet(
 )
 cdm[[iDrugs]] <- DrugUtilisation::requireIsFirstDrugEntry(cdm[[iDrugs]])
 
-info(logger, "instantiate condition index cohort")
+log4r::info(logger, "instantiate condition index cohort")
 cdm <- CDMConnector::generateConceptCohortSet(
   cdm = cdm, 
   name = iConditions, 
@@ -67,7 +69,7 @@ cdm <- CDMConnector::generateConceptCohortSet(
 )
 cdm[[iConditions]] <- CohortConstructor::requireIsFirstEntry(cdm[[iConditions]])
 
-info(logger, "instantiate insomnia stratifications")
+log4r::info(logger, "instantiate insomnia stratifications")
 cdm[[iInsomnia]] <- cdm[[iConditions]] |>
   CohortConstructor::subsetCohorts(
     cohortId = omopgenerics::getCohortId(
@@ -75,22 +77,28 @@ cdm[[iInsomnia]] <- cdm[[iConditions]] |>
     ),
     name = iInsomnia
   ) |>
-  CohortConstructor::requireCohortIntersect(
+  PatientProfiles::addCohortIntersectFlag(
     targetCohortTable = iConditions, 
     targetCohortId = omopgenerics::getCohortId(
       cohort = cdm[[iConditions]], cohortName = "dementia"
     ), 
-    window = c(-Inf, -1), 
-    intersections = list(0, c(1, Inf))
+    window = c(-Inf, -1),
+    nameStyle = "prior_dementia",
+    name = iInsomnia
+  ) |>
+  dplyr::mutate(prior_dementia = dplyr::if_else(
+    .data$prior_dementia == 1, "prior_dementia", "no_prior_dementia"
+  )) |>
+  CohortConstructor::stratifyCohorts(
+    strata = list("prior_dementia"), name = iInsomnia
   )
-# update names
 
-info(logger, "bind index cohorts")
+log4r::info(logger, "bind index cohorts")
 cdm <- omopgenerics::bind(
   cdm[[iDrugs]], cdm[[iConditions]], cdm[[iInsomnia]], name = indexCohort
 )
 cdm <- omopgenerics::dropSourceTable(
-  cdm = cdm, name = dplyr::starts_width(c(iDrugs, iConditions, iInsomnia))
+  cdm = cdm, name = dplyr::starts_with(c(iDrugs, iConditions, iInsomnia))
 )
 
 cdm[[indexCohort]] <- cdm[[indexCohort]] |>
@@ -102,7 +110,7 @@ dementiaId <- omopgenerics::getCohortId(
   cohort = cdm[[indexCohort]], cohortName = "dementia"
 )
 
-info(logger, "instantiate table 1 conditions cohorts")
+log4r::info(logger, "instantiate table 1 conditions cohorts")
 cdm <- CDMConnector::generateConceptCohortSet(
   cdm = cdm, 
   conceptSet = codelistsConditions, 
@@ -113,7 +121,7 @@ cdm <- CDMConnector::generateConceptCohortSet(
   subsetCohortId = dementiaId
 )
 
-info(logger, "instantiate table 1 medications cohorts")
+log4r::info(logger, "instantiate table 1 medications cohorts")
 cdm <- CDMConnector::generateConceptCohortSet(
   cdm = cdm, 
   conceptSet = codelistMedications, 
@@ -125,25 +133,25 @@ cdm <- CDMConnector::generateConceptCohortSet(
 )
 
 # analyses part ----------------------------------------------------------------
-info(logger, "START ANALYSES")
+log4r::info(logger, "START ANALYSES")
 
-info(logger, "extract cohort counts")
+log4r::info(logger, "extract cohort counts")
 counts <- cdm[[indexCohort]] |>
   CohortCharacteristics::summariseCohortCount()
 
-info(logger, "extract cohort attritions")
+log4r::info(logger, "extract cohort attritions")
 attritions <- cdm[[indexCohort]] |>
   CohortCharacteristics::summariseCohortAttrition()
 
-info(logger, "extract cohort overlap")
+log4r::info(logger, "extract cohort overlap")
 overlap <- cdm[[indexCohort]] |>
   CohortCharacteristics::summariseCohortOverlap()
 
-info(logger, "extract cohort timing")
+log4r::info(logger, "extract cohort timing")
 timing <- cdm[[indexCohort]] |>
   CohortCharacteristics::summariseCohortTiming()
 
-info(logger, "extract cohort characteristics")
+log4r::info(logger, "extract cohort characteristics")
 characteristics <- cdm[[indexCohort]] |>
   CohortCharacteristics::summariseCharacteristics(
     cohortId = dementiaId, 
@@ -152,10 +160,10 @@ characteristics <- cdm[[indexCohort]] |>
     ageGroup = list(c(0, 19), c(20, 39), c(40, 59), c(60, 79), c(80, Inf)), 
     cohortIntersectFlag = list(
       "Conditions any time prior" = list(
-        targetCohortName = generalConditions, window = c(-Inf, -1)
+        targetCohortTable = generalConditions, window = c(-Inf, -1)
       ),
       "Medications in the prior year" = list(
-        targetCohortName = generalMedications, window = c(-365, -1)
+        targetCohortTable = generalMedications, window = c(-365, -1)
       )
     ),
     tableIntersectCount = list(
@@ -165,7 +173,7 @@ characteristics <- cdm[[indexCohort]] |>
     )
   )
 
-info(logger, "extract cohort large scale characteristics")
+log4r::info(logger, "extract cohort large scale characteristics")
 largeScaleCharacteristics <- cdm[[indexCohort]] |>
   dplyr::filter(cohort_definition_id == dementiaId) |>
   CohortCharacteristics::summariseLargeScaleCharacteristics(
@@ -181,7 +189,7 @@ largeScaleCharacteristics <- cdm[[indexCohort]] |>
   )
   
 # export results ---------------------------------------------------------------
-info(logger, "EXPORT RESULTS")
+log4r::info(logger, "EXPORT RESULTS")
 omopgenerics::exportSummarisedResult(
   snapshot, 
   counts, 
