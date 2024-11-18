@@ -4,26 +4,7 @@
 renv::activate()
 renv::restore()
 
-library(CDMConnector)
-library(DrugUtilisation)
-library(purrr)
-library(CodelistGenerator)
 library(DBI)
-library(log4r)
-library(dplyr)
-library(here)
-library(RPostgres)
-library(SqlRender)
-library(zip)
-library(readr)
-library(CohortCharacteristics)
-library(PatientProfiles)
-library(snakecase)
-library(readr)
-library(CohortSurvival)
-library(CirceR)
-library(IncidencePrevalence)
-library(OmopSketch)
 
 # Connect to database ----
 # please see examples how to connect to the database here:
