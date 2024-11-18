@@ -37,8 +37,13 @@ snapshot <- OmopSketch::summariseOmopSnapshot(cdm)
 info(logger, 'INSTANTIATE COHORTS')
 info(logger, "read codelists")
 codelistsIndex <- omopgenerics::importCodelist(here::here("Codelists"), "csv")
-# codelistMedications <- 
-# codelistsConditions <-
+codelistMedications <- omopgenerics::importCodelist(
+  path = here::here("Codelists", "table 1 medications"), type = "csv"
+)
+codelistsConditions <- omopgenerics::importCodelist(
+  path = here::here("Codelists", "table 1 conditions"), type = "csv"
+)
+
 iDrugs <- "index_drugs"
 iConditions <- "index_conditions"
 iInsomnia <- "index_insomnia"
