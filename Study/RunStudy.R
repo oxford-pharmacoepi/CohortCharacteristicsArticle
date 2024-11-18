@@ -188,3 +188,19 @@ omopgenerics::exportSummarisedResult(
   minCellCount = minCellCount, 
   path = here::here("Results")
 )
+
+# clean tables -----------------------------------------------------------------
+cli::cli_inform(c("v" = "STUDY FINISHED"))
+tablesCreated <- omopgenerics::listSourceTables(cdm = cdm)
+cli::cli_inform(c("The study has created some tables: {.pkg {tablesCreated}}. Do you want to eliminate them?", " " = "1) Yes", " " = "2) No"))
+answer <- readline()
+while (!answer %in% c("1", "2")) {
+  cli::cli_inform(c("x" = "Invalid input. Please choose 1 to delete or 2 to cancel:"))
+  answer <- readline()
+}
+if (answer == "1") {
+  omopgenerics::dropSourceTable(cdm = cdm, name = tablesCreated)
+  cli::cli_inform(c("v" = "Tables eliminated!"))
+} else {
+  cli::cli_inform(c("i" = "You can later drop those tables with: `omopgenerics::dropSourceTables(cdm = cdm, name = '...')`"))
+}
