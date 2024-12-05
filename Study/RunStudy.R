@@ -24,6 +24,17 @@ if (omopgenerics::cdmName(cdm) == "SIDIAP") {
     dplyr::compute()
 }
 
+# if denmark 
+if (omopgenerics::cdmName(cdm) == "DK-DHR") {
+  log4r::info(logger,
+       "FILTER DRUG EXPOSURE TABLE WITH END DATE SMALLER THAN START DATE")
+  
+  cdm$drug_exposure <- cdm$drug_exposure |>
+    dplyr::filter(.data$drug_exposure_start_date <= .data$drug_exposure_end_date) |>
+    compute()
+  
+}
+
 # Parameters -------------------------------------------------------------------
 indexCohort   <- "index_cohort"
 generalMedications <- "medications_cohort"
