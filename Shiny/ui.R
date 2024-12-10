@@ -4,124 +4,60 @@
 ui <- bslib::page_navbar(
   title = shiny::tags$span(
     shiny::tags$img(
-      src = "ohdsi_logo.svg",
+      src = "logo_title.png",
       width = "auto",
-      height = "46px",
+      height = "50px",
       class = "me-3",
       alt = "logo"
-    ),
+    ), 
     ""
   ),
-  theme = bslib::bs_theme(),
+  theme = bslib::bs_theme(preset = "spacelab"),
+  # Introduction ----
   bslib::nav_panel(
-    title = "Background",
-    icon = shiny::icon("disease"),
+    title = "Introduction",
+    icon = shiny::icon("info"),
     backgroundCard("background.md")
   ),
+  # Database details ----
   bslib::nav_panel(
-    title = "Summary",
-    icon = shiny::icon("file-alt"),
-    summaryCard(data)
-  ),
-  bslib::nav_panel(
-    title = "Snapshot",
+    title = "Databases details",
     icon = shiny::icon("clipboard-list"),
     bslib::layout_sidebar(
       sidebar = bslib::sidebar(
-        bslib::accordion(
-          bslib::accordion_panel(
-            title = "Grouping",
-            shinyWidgets::pickerInput(
-              inputId = "summarise_omop_snapshot_grouping_cdm_name",
-              label = "Cdm name",
-              choices = filterValues$summarise_omop_snapshot_grouping_cdm_name,
-              selected = filterValues$summarise_omop_snapshot_grouping_cdm_name,
-              multiple = TRUE,
-              options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-            )
-          ),
-          bslib::accordion_panel(
-            title = "Variables",
-            shinyWidgets::pickerInput(
-              inputId = "summarise_omop_snapshot_variable_name",
-              label = "Variable name",
-              choices = filterValues$summarise_omop_snapshot_variable_name,
-              selected = filterValues$summarise_omop_snapshot_variable_name,
-              multiple = TRUE,
-              options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-            )
-          ),
-          bslib::accordion_panel(
-            title = "Estimates",
-            shinyWidgets::pickerInput(
-              inputId = "summarise_omop_snapshot_estimate_name",
-              label = "Estimate name",
-              choices = filterValues$summarise_omop_snapshot_estimate_name,
-              selected = filterValues$summarise_omop_snapshot_estimate_name,
-              multiple = TRUE,
-              options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-            )
-          )
+        shinyWidgets::pickerInput(
+          inputId = "summarise_omop_snapshot_grouping_cdm_name",
+          label = "CDM name",
+          choices = filterValues$summarise_omop_snapshot_grouping_cdm_name,
+          selected = filterValues$summarise_omop_snapshot_grouping_cdm_name,
+          multiple = TRUE,
+          options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
         )
       ),
-      bslib::navset_card_tab(
-        bslib::nav_panel(
-          title = "Tidy",
-          bslib::card(
-            full_screen = TRUE,
-            bslib::card_header(
-              bslib::popover(
-                shiny::icon("download"),
-                shiny::downloadButton(outputId = "summarise_omop_snapshot_tidy_download", label = "Download csv")
+      bslib::nav_panel(
+        title = "Snapshot table",
+        bslib::card(
+          full_screen = TRUE,
+          bslib::card_header(
+            bslib::popover(
+              shiny::icon("download"),
+              shinyWidgets::pickerInput(
+                inputId = "summarise_omop_snapshot_gt_17_download_type",
+                label = "File type",
+                selected = "docx",
+                choices = c("docx", "png", "pdf", "html"),
+                multiple = FALSE
               ),
-              class = "text-end"
+              shiny::downloadButton(outputId = "summarise_omop_snapshot_gt_17_download", label = "Download")
             ),
-            bslib::layout_sidebar(
-              sidebar = bslib::sidebar(
-                shinyWidgets::pickerInput(
-                  inputId = "summarise_omop_snapshot_tidy_columns",
-                  label = "Columns",
-                  choices = filterValues$summarise_omop_snapshot_tidy_columns,
-                  selected = filterValues$summarise_omop_snapshot_tidy_columns,
-                  multiple = TRUE,
-                  options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                ),
-                shiny::radioButtons(
-                  inputId = "summarise_omop_snapshot_tidy_pivot",
-                  label = "Pivot estimates/variables",
-                  choices = c("none", "estimates", "estimates and variables"),
-                  selected = "none"
-                ),
-                position = "right"
-              ),
-              DT::dataTableOutput("summarise_omop_snapshot_tidy")
-            )
-          )
-        ),
-        bslib::nav_panel(
-          title = "Snapshot table",
-          bslib::card(
-            full_screen = TRUE,
-            bslib::card_header(
-              bslib::popover(
-                shiny::icon("download"),
-                shinyWidgets::pickerInput(
-                  inputId = "summarise_omop_snapshot_gt_17_download_type",
-                  label = "File type",
-                  selected = "docx",
-                  choices = c("docx", "png", "pdf", "html"),
-                  multiple = FALSE
-                ),
-                shiny::downloadButton(outputId = "summarise_omop_snapshot_gt_17_download", label = "Download")
-              ),
-              class = "text-end"
-            ),
-            gt::gt_output("summarise_omop_snapshot_gt_17")
-          )
+            class = "text-end"
+          ),
+          gt::gt_output("summarise_omop_snapshot_gt_17")
         )
       )
     )
   ),
+  # Cohort counts ----
   bslib::nav_panel(
     title = "Cohort count",
     icon = shiny::icon("users"),
@@ -1454,16 +1390,6 @@ ui <- bslib::page_navbar(
   bslib::nav_spacer(),
   bslib::nav_item(
     bslib::popover(
-      shiny::icon("download"),
-      shiny::downloadButton(
-        outputId = "download_raw",
-        label = "Download raw data",
-        icon = shiny::icon("download")
-      )
-    )
-  ),
-  bslib::nav_item(
-    bslib::popover(
       shiny::icon("circle-info"),
       shiny::tags$img(
         src = "hds_logo.svg",
@@ -1481,6 +1407,5 @@ ui <- bslib::page_navbar(
       ),
       shiny::strong("v0.2.0")
     )
-  ),
-  bslib::nav_item(bslib::input_dark_mode(id = "dark_mode", mode = "light"))
+  )
 )

@@ -2,6 +2,7 @@
 # Be careful editing this file
 
 server <- function(input, output, session) {
+  
   # download raw data -----
   output$download_raw <- shiny::downloadHandler(
     filename = "results.csv",
