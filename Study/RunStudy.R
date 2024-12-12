@@ -105,16 +105,18 @@ cdm <- CohortCharacteristics::bind(
     dplyr::filter(.data$prior_dementia == 1) |>
     dplyr::compute(name = nm1, temporary = FALSE) |>
     omopgenerics::recordCohortAttrition(reason = "prior dementia (any time prior to day before index date)") |>
-    omopgenerics::newCohortTable(cohortSetRef = dplyr::tibble(
-      cohort_definition_id = 1L, cohort_name = "insomnia_broad_prior_dementia"
-    )),
+    omopgenerics::newCohortTable(
+      cohortSetRef = omopgenerics::settings(x) |>
+        dplyr::mutate(cohort_name = "insomnia_broad_prior_dementia")
+    ),
   x |>
     dplyr::filter(.data$prior_dementia == 0) |>
     dplyr::compute(name = nm2, temporary = FALSE) |>
     omopgenerics::recordCohortAttrition(reason = "no prior dementia (any time prior to day before index date)") |>
-    omopgenerics::newCohortTable(cohortSetRef = dplyr::tibble(
-      cohort_definition_id = 1L, cohort_name = "insomnia_broad_no_prior_dementia"
-    )),
+    omopgenerics::newCohortTable(
+      cohortSetRef = omopgenerics::settings(x) |>
+        dplyr::mutate(cohort_name = "insomnia_broad_no_prior_dementia")
+    ),
   name = iInsomnia
 )
 cdm <- omopgenerics::dropSourceTable(cdm = cdm, name = dplyr::starts_with(prefix))
