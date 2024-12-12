@@ -81,7 +81,7 @@ cdm <- CDMConnector::generateConceptCohortSet(
 cdm[[iConditions]] <- CohortConstructor::requireIsFirstEntry(cdm[[iConditions]])
 
 log4r::info(logger, "instantiate insomnia stratifications")
-cdm[[iInsomnia]] <- cdm[[iConditions]] |>
+x <- cdm[[iConditions]] |>
   CohortConstructor::subsetCohorts(
     cohortId = omopgenerics::getCohortId(
       cohort = cdm[[iConditions]], cohortName = "insomnia_broad"
@@ -96,13 +96,28 @@ cdm[[iInsomnia]] <- cdm[[iConditions]] |>
     window = c(-Inf, -1),
     nameStyle = "prior_dementia",
     name = iInsomnia
-  ) |>
-  dplyr::mutate(prior_dementia = dplyr::if_else(
-    .data$prior_dementia == 1, "prior_dementia", "no_prior_dementia"
-  )) |>
-  CohortConstructor::stratifyCohorts(
-    strata = list("prior_dementia"), name = iInsomnia
   )
+prefix <- omopgenerics::tmpPrefix()
+nm1 <- omopgenerics::uniqueTableName(prefix)
+nm2 <- omopgenerics::uniqueTableName(prefix)
+cdm <- CohortCharacteristics::bind(
+  x |>
+    dplyr::filter(.data$prior_dementia == 1) |>
+    dplyr::compute(name = nm1, temporary = FALSE) |>
+    omopgenerics::recordCohortAttrition(reason = "prior dementia (any time prior to day before index date)") |>
+    omopgenerics::newCohortTable(cohortSetRef = dplyr::tibble(
+      cohort_definition_id = 1L, cohort_name = "insomnia_broad_prior_dementia"
+    )),
+  x |>
+    dplyr::filter(.data$prior_dementia == 0) |>
+    dplyr::compute(name = nm2, temporary = FALSE) |>
+    omopgenerics::recordCohortAttrition(reason = "no prior dementia (any time prior to day before index date)") |>
+    omopgenerics::newCohortTable(cohortSetRef = dplyr::tibble(
+      cohort_definition_id = 1L, cohort_name = "insomnia_broad_no_prior_dementia"
+    )),
+  name = iInsomnia
+)
+cdm <- omopgenerics::dropSourceTable(cdm = cdm, name = dplyr::starts_with(prefix))
 
 log4r::info(logger, "bind index cohorts")
 cdm <- omopgenerics::bind(
