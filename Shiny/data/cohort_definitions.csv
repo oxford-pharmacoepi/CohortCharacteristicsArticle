@@ -1,0 +1,23 @@
+cohort_name, definition, value
+any_antipsycotics, cohort_start_date, Record of `any_antipsycotics` start date
+any_antipsycotics, cohort_end_date, Record of `any_antipsycotics` end date erafied with 30 days
+any_antipsycotics, inclusion 1, First record
+any_antipsycotics, inclusion 2, 'cohort_start_date' between 2013-01-01 and 2023-12-31
+dementia, cohort_start_date, Record of `dementia` start date
+dementia, cohort_end_date, Record of `dementia` start date
+dementia, inclusion 1, First record
+dementia, inclusion 2, 'cohort_start_date' between 2013-01-01 and 2023-12-31
+insomnia_broad, cohort_start_date, Record of `insomnia_broad` start date
+insomnia_broad, cohort_end_date, Record of `insomnia_broad` start date
+insomnia_broad, inclusion 1, First record
+insomnia_broad, inclusion 2, 'cohort_start_date' between 2013-01-01 and 2023-12-31
+insomnia_broad_no_prior_dementia, cohort_start_date, Record of `insomnia_broad` start date
+insomnia_broad_no_prior_dementia, cohort_end_date, Record of `insomnia_broad` start date
+insomnia_broad_no_prior_dementia, inclusion 1, First record
+insomnia_broad_no_prior_dementia, inclusion 2, No prior `dementia` record between any time prior and the day before 'cohort_start_date'
+insomnia_broad_no_prior_dementia, inclusion 3, 'cohort_start_date' between 2013-01-01 and 2023-12-31
+insomnia_broad_prior_dementia, cohort_start_date, Record of `insomnia_broad` start date
+insomnia_broad_prior_dementia, cohort_end_date, Record of `insomnia_broad` start date
+insomnia_broad_prior_dementia, inclusion 1, First record
+insomnia_broad_prior_dementia, inclusion 2, Prior `dementia` record between any time prior and the day before 'cohort_start_date'
+insomnia_broad_prior_dementia, inclusion 3, 'cohort_start_date' between 2013-01-01 and 2023-12-31

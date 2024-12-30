@@ -15,6 +15,30 @@ result <- omopgenerics::importSummarisedResult(file.path(getwd(), "data"))
 data <- prepareResult(result, resultList)
 filterValues <- defaultFilterValues(result, resultList)
 
-save(data, filterValues, file = file.path(getwd(), "data", "shinyData.RData"))
+# cohort definitions
+cohortDefinitions <- readr::read_csv(
+  file = file.path(getwd(), "data", "cohort_definitions.csv"), 
+  col_types = c(.default = "c"), 
+  show_col_types = FALSE
+)
 
-rm(result, filterValues, resultList, data)
+# codelist definitions
+codelistDefinitions <- readr::read_csv(
+  file = file.path(getwd(), "data", "codelists_definitions.csv"), 
+  col_types = c(.default = "c", concept_id = "i"), 
+  show_col_types = FALSE
+)
+
+# codelists used in cohorts
+cohortDefinitions <- cohortDefinitions |>
+  dplyr::mutate(
+    codelist_name = stringr::str_extract_all(.data$value, "`(.*?)`") |>
+      purrr::map(\(x) substr(x, 2, nchar(x)-1))
+  )
+
+save(
+  data, filterValues, cohortDefinitions, codelistDefinitions,
+  file = file.path(getwd(), "data", "shinyData.RData")
+)
+
+rm(result, filterValues, resultList, data, cohortDefinitions, codelistDefinitions)
