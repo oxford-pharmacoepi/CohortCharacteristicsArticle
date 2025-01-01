@@ -2,6 +2,32 @@
 # Be careful editing this file
 
 server <- function(input, output, session) {
+  # cohort and codelist ----
+  # codelist_name details
+  output$codelist_name_details <- DT::renderDT({
+    DT::datatable(codelistDefinitions[[input$codelist_name]], rownames = FALSE, escape = FALSE)
+  })
+  # definition
+  output$cohort_definition <- shiny::renderUI({
+    x <- cohortDefinitions |>
+      dplyr::filter(.data$cohort_name == input$cohort_name) |>
+      dplyr::select("cohort_name", "definition", "value")
+    start <- x$value[x$definition == "cohort_start_date"]
+    end <- x$value[x$definition == "cohort_end_date"]
+    result <- c(
+      paste0("**Cohort start date:** ", start),
+      paste0("**Cohort end date:** ", end)
+    )
+    inclusion <- x |>
+      dplyr::filter(stringr::str_starts(.data$definition, "inclusion"))
+    inclusionText <- purrr::map_chr(seq_len(nrow(inclusion)), \(k) {
+      paste0(k, ". ", inclusion$value[inclusion$definition == paste0("inclusion ", k)])
+    })
+    if (length(inclusionText) > 0) {
+      inclusionText <- c("**Inclusion criteria:**", inclusionText)
+    }
+    shiny::markdown(paste0(c(result, inclusionText), collapse = "\n\n"))
+  })
   
   # download raw data -----
   output$download_raw <- shiny::downloadHandler(

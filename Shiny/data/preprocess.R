@@ -27,7 +27,18 @@ codelistDefinitions <- readr::read_csv(
   file = file.path(getwd(), "data", "codelists_definitions.csv"), 
   col_types = c(.default = "c", concept_id = "i"), 
   show_col_types = FALSE
-)
+) |>
+  dplyr::mutate(concept_name = paste0(
+    "<a href='https://athena.ohdsi.org/search-terms/terms/", .data$concept_id, 
+    "'>", .data$concept_name, "</a>"
+  )) |>
+  dplyr::group_by(.data$codelist_name) |>
+  dplyr::group_split() |>
+  as.list()
+names(codelistDefinitions) <- codelistDefinitions |>
+  purrr::map(\(x) x$codelist_name |> unique())
+codelistDefinitions <- codelistDefinitions |>
+  purrr::map(\(x) dplyr::select(x, -"codelist_name"))
 
 # codelists used in cohorts
 cohortDefinitions <- cohortDefinitions |>
@@ -36,8 +47,10 @@ cohortDefinitions <- cohortDefinitions |>
       purrr::map(\(x) substr(x, 2, nchar(x)-1))
   )
 
+cohortNames <- unique(cohortDefinitions$cohort_name)
+
 save(
-  data, filterValues, cohortDefinitions, codelistDefinitions,
+  data, filterValues, cohortDefinitions, codelistDefinitions, cohortNames,
   file = file.path(getwd(), "data", "shinyData.RData")
 )
 
