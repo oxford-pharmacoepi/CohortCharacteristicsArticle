@@ -1,8 +1,8 @@
 cohort_name, definition, value
-any_antipsycotics, cohort_start_date, Record of `any_antipsycotics` start date
-any_antipsycotics, cohort_end_date, Record of `any_antipsycotics` end date erafied with 30 days
-any_antipsycotics, inclusion 1, First record
-any_antipsycotics, inclusion 2, 'cohort_start_date' between 2013-01-01 and 2023-12-31
+any_antipsychotics, cohort_start_date, Record of `any_antipsychotics` start date
+any_antipsychotics, cohort_end_date, Record of `any_antipsychotics` end date erafied with 30 days
+any_antipsychotics, inclusion 1, First record
+any_antipsychotics, inclusion 2, 'cohort_start_date' between 2013-01-01 and 2023-12-31
 dementia, cohort_start_date, Record of `dementia` start date
 dementia, cohort_end_date, Record of `dementia` start date
 dementia, inclusion 1, First record

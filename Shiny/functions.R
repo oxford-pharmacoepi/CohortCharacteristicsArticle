@@ -340,3 +340,31 @@ defaultFilterValues <- function(result, resultList) {
     }) |>
     purrr::flatten()
 }
+cdmCohortFilter <- function(prefix) {
+  bslib::accordion_panel(
+    title = shiny::tagList(
+      "CDM instances and Cohort of interest",
+      bslib::popover(
+        trigger = shiny::icon("circle-info"),
+        "Filtering cdm and/or cohort name will be applied to all result panels."
+      )
+    ),
+    value = paste0(prefix, "_cdm_and_cohort"),
+    shinyWidgets::pickerInput(
+      inputId = paste0(prefix, "_cdm_name"),
+      label = "CDM name",
+      choices = cdmNames,
+      selected = cdmNames[1],
+      multiple = TRUE,
+      options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+    ),
+    shinyWidgets::pickerInput(
+      inputId = paste0(prefix, "_grouping_cohort_name"),
+      label = "Cohort name",
+      choices = cohortNames,
+      selected = cohortNames[1],
+      multiple = TRUE,
+      options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+    )
+  )
+}

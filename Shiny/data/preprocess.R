@@ -12,6 +12,13 @@ resultList <- list(
 source(file.path(getwd(), "functions.R"))
 
 result <- omopgenerics::importSummarisedResult(file.path(getwd(), "data"))
+
+# correct any_antipsychotics
+result <- result |>
+  dplyr::mutate(group_level = stringr::str_replace_all(
+    .data$group_level, "any_antipsychotic", "any_antipsychotics"
+  ))
+
 data <- prepareResult(result, resultList)
 filterValues <- defaultFilterValues(result, resultList)
 
@@ -48,10 +55,11 @@ cohortDefinitions <- cohortDefinitions |>
   )
 
 cohortNames <- unique(cohortDefinitions$cohort_name)
+cdmNames <- unique(result$cdm_name)
 
 save(
   data, filterValues, cohortDefinitions, codelistDefinitions, cohortNames,
-  file = file.path(getwd(), "data", "shinyData.RData")
+  cdmNames, file = file.path(getwd(), "data", "shinyData.RData")
 )
 
-rm(result, filterValues, resultList, data, cohortDefinitions, codelistDefinitions)
+rm(result, filterValues, resultList, data, cohortDefinitions, codelistDefinitions, cohortNames, cdmNames)

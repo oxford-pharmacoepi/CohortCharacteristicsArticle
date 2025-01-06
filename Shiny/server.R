@@ -7,6 +7,36 @@ server <- function(input, output, session) {
   output$codelist_name_details <- DT::renderDT({
     DT::datatable(codelistDefinitions[[input$codelist_name]], rownames = FALSE, escape = FALSE)
   })
+  output$codelist_presence <- shiny::renderUI({
+    formatCriteria <- function(x) {
+      if (length(x) == 0) return(character())
+      stringr::str_glue("`{x}`") |>
+        glue::glue_collapse(sep = ", ", last = " and ")
+    }
+    result <- cohortDefinitions |>
+      dplyr::filter(.data$codelist_name %in% input$codelist_name) |>
+      dplyr::select("cohort_name", "definition") |>
+      dplyr::group_by(.data$cohort_name) |>
+      dplyr::group_split() |>
+      purrr::map_chr(\(x) {
+        nm <- unique(x$cohort_name)
+        val <- stringr::str_replace_all(x$definition, "_", " ")
+        id <- stringr::str_starts(val, "inclusion")
+        if (sum(id) > 0) {
+          inclusion <- substr(val[id], 11, nchar(val[id])) |>
+            formatCriteria()
+          inclusion <- paste0("inclusion criteria ", inclusion)
+        } else {
+          inclusion <- character()
+        }
+        res <- c(formatCriteria(val[!id]), inclusion) |>
+          glue::glue_collapse(sep = ", ", last = " and ")
+        paste0("* **", nm, "** for ", res, ".")
+      })
+    c("This codelist is used in the following cohorts:", result) |>
+      paste0(collapse = "\n\n") |>
+      shiny::markdown()
+  })
   # definition
   output$cohort_definition <- shiny::renderUI({
     x <- cohortDefinitions |>
@@ -36,100 +66,45 @@ server <- function(input, output, session) {
       omopgenerics::exportSummarisedResult(data, fileName = file)
     }
   )
+  
   # summarise_omop_snapshot -----
-  ## tidy summarise_omop_snapshot -----
-  getTidyDataSummariseOmopSnapshot <- shiny::reactive({
-    res <- data |>
+  createSummariseOmopSnapshot <- shiny::reactive({
+    data |>
       filterData("summarise_omop_snapshot", input) |>
-      visOmopResults::addSettings() |>
-      visOmopResults::splitAll() |>
-      dplyr::select(!"result_id")
-
-    # columns to eliminate
-    colsEliminate <- colnames(res)
-    colsEliminate <- colsEliminate[!colsEliminate %in% c(
-      input$summarise_omop_snapshot_tidy_columns, "variable_name", "variable_level",
-      "estimate_name", "estimate_type", "estimate_value"
-    )]
-
-    # pivot
-    pivot <- input$summarise_omop_snapshot_tidy_pivot
-    if (pivot != "none") {
-      vars <- switch(pivot,
-        "estimates" = "estimate_name",
-        "estimates and variables" = c("variable_name", "variable_level", "estimate_name")
-      )
-      res <- res |>
-        visOmopResults::pivotEstimates(pivotEstimatesBy = vars)
-    }
-
-    res |>
-      dplyr::select(!dplyr::all_of(colsEliminate))
+      OmopSketch::tableOmopSnapshot()
   })
-  output$summarise_omop_snapshot_tidy <- DT::renderDT({
-    DT::datatable(
-      getTidyDataSummariseOmopSnapshot(),
-      options = list(scrollX = TRUE),
-      rownames = FALSE
-    )
+  output$summarise_omop_snapshot_gt <- gt::render_gt({
+    createSummariseOmopSnapshot()
   })
-  output$summarise_omop_snapshot_tidy_download <- shiny::downloadHandler(
-    filename = "tidy_summarise_omop_snapshot.csv",
+  output$summarise_omop_snapshot_gt_download <- shiny::downloadHandler(
+    filename = paste0("output_gt_summarise_omop_snapshot.", input$summarise_omop_snapshot_gt_download_type),
     content = function(file) {
-      getTidyDataSummariseOmopSnapshot() |>
-        readr::write_csv(file = file)
-    }
-  )
-  ## output summarise_omop_snapshot -----
-  ## output 17 -----
-  createOutput17 <- shiny::reactive({
-    result <- data |>
-      filterData("summarise_omop_snapshot", input)
-    OmopSketch::tableOmopSnapshot(
-      result
-    )
-  })
-  output$summarise_omop_snapshot_gt_17 <- gt::render_gt({
-    createOutput17()
-  })
-  output$summarise_omop_snapshot_gt_17_download <- shiny::downloadHandler(
-    filename = paste0("output_gt_summarise_omop_snapshot.", input$summarise_omop_snapshot_gt_17_download_type),
-    content = function(file) {
-      obj <- createOutput17()
+      obj <- createSummariseOmopSnapshot()
       gt::gtsave(data = obj, filename = file)
     }
   )
 
-
   # summarise_cohort_count -----
   ## tidy summarise_cohort_count -----
   getTidyDataSummariseCohortCount <- shiny::reactive({
-    res <- data |>
-      filterData("summarise_cohort_count", input) |>
-      visOmopResults::addSettings() |>
-      visOmopResults::splitAll() |>
-      dplyr::select(!"result_id")
-
-    # columns to eliminate
-    colsEliminate <- colnames(res)
-    colsEliminate <- colsEliminate[!colsEliminate %in% c(
-      input$summarise_cohort_count_tidy_columns, "variable_name", "variable_level",
-      "estimate_name", "estimate_type", "estimate_value"
-    )]
-
-    # pivot
-    pivot <- input$summarise_cohort_count_tidy_pivot
-    if (pivot != "none") {
-      vars <- switch(pivot,
-        "estimates" = "estimate_name",
-        "estimates and variables" = c("variable_name", "variable_level", "estimate_name")
+    result <- data |>
+      filterData("summarise_cohort_count", input) 
+    if (nrow(result) > 0) {
+      result <- result |>
+        omopgenerics::tidy() |>
+        dplyr::select(!c("variable_level", "table_name")) |>
+        tidyr::pivot_wider(names_from = "variable_name", values_from = "count")
+    } else {
+      result <- dplyr::tibble(
+        cdm_name = character(),
+        cohort_name = character()
       )
-      res <- res |>
-        visOmopResults::pivotEstimates(pivotEstimatesBy = vars)
+      for (var in input$summarise_cohort_count_variable_name) {
+        result <- result |>
+          dplyr::mutate(!!var := integer())
+      }
     }
-
-    res |>
-      dplyr::select(!dplyr::all_of(colsEliminate))
+    result
   })
   output$summarise_cohort_count_tidy <- DT::renderDT({
     DT::datatable(

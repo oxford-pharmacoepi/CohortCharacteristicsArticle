@@ -37,6 +37,7 @@ ui <- bslib::page_navbar(
           choices = names(codelistDefinitions),
           selected = "insomnia_broad"
         ),
+        shiny::uiOutput("codelist_presence"),
         DT::DTOutput("codelist_name_details")
       )
     ),
@@ -67,8 +68,8 @@ ui <- bslib::page_navbar(
         shinyWidgets::pickerInput(
           inputId = "summarise_omop_snapshot_cdm_name",
           label = "CDM name",
-          choices = filterValues$summarise_omop_snapshot_grouping_cdm_name,
-          selected = filterValues$summarise_omop_snapshot_grouping_cdm_name,
+          choices = filterValues$summarise_omop_snapshot_cdm_name,
+          selected = filterValues$summarise_omop_snapshot_cdm_name,
           multiple = TRUE,
           options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
         )
@@ -81,225 +82,171 @@ ui <- bslib::page_navbar(
             bslib::popover(
               shiny::icon("download"),
               shinyWidgets::pickerInput(
-                inputId = "summarise_omop_snapshot_gt_17_download_type",
+                inputId = "summarise_omop_snapshot_gt_download_type",
                 label = "File type",
                 selected = "docx",
                 choices = c("docx", "png", "pdf", "html"),
                 multiple = FALSE
               ),
-              shiny::downloadButton(outputId = "summarise_omop_snapshot_gt_17_download", label = "Download")
+              shiny::downloadButton(outputId = "summarise_omop_snapshot_gt_download", label = "Download")
             ),
             class = "text-end"
           ),
-          gt::gt_output("summarise_omop_snapshot_gt_17")
+          gt::gt_output("summarise_omop_snapshot_gt")
         )
       )
     )
   ),
-  # Cohort counts ----
-  # bslib::nav_panel(
-  #   title = "Cohort count",
-  #   icon = shiny::icon("users"),
-  #   bslib::layout_sidebar(
-  #     sidebar = bslib::sidebar(
-  #       bslib::accordion(
-  #         bslib::accordion_panel(
-  #           title = "Settings",
-  #           shinyWidgets::pickerInput(
-  #             inputId = "summarise_cohort_count_settings_table_name",
-  #             label = "Table name",
-  #             choices = filterValues$summarise_cohort_count_settings_table_name,
-  #             selected = filterValues$summarise_cohort_count_settings_table_name,
-  #             multiple = TRUE,
-  #             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-  #           )
-  #         ),
-  #         bslib::accordion_panel(
-  #           title = "Grouping",
-  #           shinyWidgets::pickerInput(
-  #             inputId = "summarise_cohort_count_grouping_cdm_name",
-  #             label = "Cdm name",
-  #             choices = filterValues$summarise_cohort_count_grouping_cdm_name,
-  #             selected = filterValues$summarise_cohort_count_grouping_cdm_name,
-  #             multiple = TRUE,
-  #             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-  #           ),
-  #           shinyWidgets::pickerInput(
-  #             inputId = "summarise_cohort_count_grouping_cohort_name",
-  #             label = "Cohort name",
-  #             choices = filterValues$summarise_cohort_count_grouping_cohort_name,
-  #             selected = filterValues$summarise_cohort_count_grouping_cohort_name,
-  #             multiple = TRUE,
-  #             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-  #           )
-  #         ),
-  #         bslib::accordion_panel(
-  #           title = "Variables",
-  #           shinyWidgets::pickerInput(
-  #             inputId = "summarise_cohort_count_variable_name",
-  #             label = "Variable name",
-  #             choices = filterValues$summarise_cohort_count_variable_name,
-  #             selected = filterValues$summarise_cohort_count_variable_name,
-  #             multiple = TRUE,
-  #             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-  #           )
-  #         ),
-  #         bslib::accordion_panel(
-  #           title = "Estimates",
-  #           shinyWidgets::pickerInput(
-  #             inputId = "summarise_cohort_count_estimate_name",
-  #             label = "Estimate name",
-  #             choices = filterValues$summarise_cohort_count_estimate_name,
-  #             selected = filterValues$summarise_cohort_count_estimate_name,
-  #             multiple = TRUE,
-  #             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-  #           )
-  #         )
-  #       )
-  #     ),
-  #     bslib::navset_card_tab(
-  #       bslib::nav_panel(
-  #         title = "Tidy",
-  #         bslib::card(
-  #           full_screen = TRUE,
-  #           bslib::card_header(
-  #             bslib::popover(
-  #               shiny::icon("download"),
-  #               shiny::downloadButton(outputId = "summarise_cohort_count_tidy_download", label = "Download csv")
-  #             ),
-  #             class = "text-end"
-  #           ),
-  #           bslib::layout_sidebar(
-  #             sidebar = bslib::sidebar(
-  #               shinyWidgets::pickerInput(
-  #                 inputId = "summarise_cohort_count_tidy_columns",
-  #                 label = "Columns",
-  #                 choices = filterValues$summarise_cohort_count_tidy_columns,
-  #                 selected = filterValues$summarise_cohort_count_tidy_columns,
-  #                 multiple = TRUE,
-  #                 options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-  #               ),
-  #               shiny::radioButtons(
-  #                 inputId = "summarise_cohort_count_tidy_pivot",
-  #                 label = "Pivot estimates/variables",
-  #                 choices = c("none", "estimates", "estimates and variables"),
-  #                 selected = "none"
-  #               ),
-  #               position = "right"
-  #             ),
-  #             DT::dataTableOutput("summarise_cohort_count_tidy")
-  #           )
-  #         )
-  #       ),
-  #       bslib::nav_panel(
-  #         title = "Table cohort count",
-  #         bslib::card(
-  #           full_screen = TRUE,
-  #           bslib::card_header(
-  #             bslib::popover(
-  #               shiny::icon("download"),
-  #               shinyWidgets::pickerInput(
-  #                 inputId = "summarise_cohort_count_gt_9_download_type",
-  #                 label = "File type",
-  #                 selected = "docx",
-  #                 choices = c("docx", "png", "pdf", "html"),
-  #                 multiple = FALSE
-  #               ),
-  #               shiny::downloadButton(outputId = "summarise_cohort_count_gt_9_download", label = "Download")
-  #             ),
-  #             class = "text-end"
-  #           ),
-  #           bslib::layout_sidebar(
-  #             sidebar = bslib::sidebar(
-  #               sortable::bucket_list(
-  #                 header = NULL,
-  #                 sortable::add_rank_list(
-  #                   text = "none",
-  #                   labels = c("cdm_name", "variable_name", "estimate_name"),
-  #                   input_id = "summarise_cohort_count_gt_9_none"
-  #                 ),
-  #                 sortable::add_rank_list(
-  #                   text = "header",
-  #                   labels = "cohort_name",
-  #                   input_id = "summarise_cohort_count_gt_9_header"
-  #                 ),
-  #                 sortable::add_rank_list(
-  #                   text = "groupColumn",
-  #                   labels = NULL,
-  #                   input_id = "summarise_cohort_count_gt_9_groupColumn"
-  #                 ),
-  #                 sortable::add_rank_list(
-  #                   text = "hide",
-  #                   labels = "variable_level",
-  #                   input_id = "summarise_cohort_count_gt_9_hide"
-  #                 )
-  #               ),
-  #               position = "right"
-  #             ),
-  #             gt::gt_output("summarise_cohort_count_gt_9")
-  #           )
-  #         )
-  #       ),
-  #       bslib::nav_panel(
-  #         title = "Plot cohort count",
-  #         bslib::card(
-  #           full_screen = TRUE,
-  #           bslib::card_header(
-  #             bslib::popover(
-  #               shiny::icon("download"),
-  #               shiny::numericInput(
-  #                 inputId = "summarise_cohort_count_ggplot2_10_download_width",
-  #                 label = "Width",
-  #                 value = 15
-  #               ),
-  #               shiny::numericInput(
-  #                 inputId = "summarise_cohort_count_ggplot2_10_download_height",
-  #                 label = "Height",
-  #                 value = 10
-  #               ),
-  #               shinyWidgets::pickerInput(
-  #                 inputId = "summarise_cohort_count_ggplot2_10_download_units",
-  #                 label = "Units",
-  #                 selected = "cm",
-  #                 choices = c("px", "cm", "inch"),
-  #                 multiple = FALSE
-  #               ),
-  #               shiny::numericInput(
-  #                 inputId = "summarise_cohort_count_ggplot2_10_download_dpi",
-  #                 label = "dpi",
-  #                 value = 300
-  #               ),
-  #               shiny::downloadButton(outputId = "summarise_cohort_count_ggplot2_10_download", label = "Download")
-  #             ),
-  #             class = "text-end"
-  #           ),
-  #           bslib::layout_sidebar(
-  #             sidebar = bslib::sidebar(
-  #               shinyWidgets::pickerInput(
-  #                 inputId = "summarise_cohort_count_ggplot2_10_facet",
-  #                 label = "facet",
-  #                 selected = "cdm_name",
-  #                 multiple = TRUE,
-  #                 choices = c("cdm_name", "cohort_name", "variable_name", "variable_level", "estimate_name"),
-  #                 options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-  #               ),
-  #               shinyWidgets::pickerInput(
-  #                 inputId = "summarise_cohort_count_ggplot2_10_colour",
-  #                 label = "colour",
-  #                 selected = NULL,
-  #                 multiple = TRUE,
-  #                 choices = c("cdm_name", "cohort_name", "variable_name", "variable_level", "estimate_name"),
-  #                 options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-  #               ),
-  #               position = "right"
-  #             ),
-  #             shiny::plotOutput("summarise_cohort_count_ggplot2_10")
-  #           )
-  #         )
-  #       )
-  #     )
-  #   )
-  # ),
+  # Results ----
+  bslib::nav_menu(
+    title = "Results",
+    icon = shiny::icon("list"),
+    # cohort count ----
+    bslib::nav_panel(
+      title = "Cohort count",
+      icon = shiny::icon("users"),
+      bslib::layout_sidebar(
+        sidebar = bslib::sidebar(
+          bslib::accordion(
+            cdmCohortFilter("summarise_cohort_count"),
+            bslib::accordion_panel(
+              title = "Variable",
+              shinyWidgets::pickerInput(
+                inputId = "summarise_cohort_count_variable_name",
+                label = "Variable name", 
+                choices = filterValues$summarise_cohort_count_variable_name,
+                selected = filterValues$summarise_cohort_count_variable_name, 
+                multiple = TRUE,
+                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+              )
+            )
+          )
+        ),
+        bslib::navset_card_tab(
+          bslib::nav_panel(
+            title = "Tidy",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shiny::downloadButton(outputId = "summarise_cohort_count_tidy_download", label = "Download csv")
+                ),
+                class = "text-end"
+              ),
+              DT::dataTableOutput("summarise_cohort_count_tidy")
+            )
+          ),
+          bslib::nav_panel(
+            title = "Table cohort count",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_count_gt_9_download_type",
+                    label = "File type",
+                    selected = "docx",
+                    choices = c("docx", "png", "pdf", "html"),
+                    multiple = FALSE
+                  ),
+                  shiny::downloadButton(outputId = "summarise_cohort_count_gt_9_download", label = "Download")
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  sortable::bucket_list(
+                    header = NULL,
+                    sortable::add_rank_list(
+                      text = "none",
+                      labels = c("cdm_name", "variable_name", "estimate_name"),
+                      input_id = "summarise_cohort_count_gt_9_none"
+                    ),
+                    sortable::add_rank_list(
+                      text = "header",
+                      labels = "cohort_name",
+                      input_id = "summarise_cohort_count_gt_9_header"
+                    ),
+                    sortable::add_rank_list(
+                      text = "groupColumn",
+                      labels = NULL,
+                      input_id = "summarise_cohort_count_gt_9_groupColumn"
+                    ),
+                    sortable::add_rank_list(
+                      text = "hide",
+                      labels = "variable_level",
+                      input_id = "summarise_cohort_count_gt_9_hide"
+                    )
+                  ),
+                  position = "right"
+                ),
+                gt::gt_output("summarise_cohort_count_gt_9")
+              )
+            )
+          ),
+          bslib::nav_panel(
+            title = "Plot cohort count",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shiny::numericInput(
+                    inputId = "summarise_cohort_count_ggplot2_10_download_width",
+                    label = "Width",
+                    value = 15
+                  ),
+                  shiny::numericInput(
+                    inputId = "summarise_cohort_count_ggplot2_10_download_height",
+                    label = "Height",
+                    value = 10
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_count_ggplot2_10_download_units",
+                    label = "Units",
+                    selected = "cm",
+                    choices = c("px", "cm", "inch"),
+                    multiple = FALSE
+                  ),
+                  shiny::numericInput(
+                    inputId = "summarise_cohort_count_ggplot2_10_download_dpi",
+                    label = "dpi",
+                    value = 300
+                  ),
+                  shiny::downloadButton(outputId = "summarise_cohort_count_ggplot2_10_download", label = "Download")
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_count_ggplot2_10_facet",
+                    label = "facet",
+                    selected = "cdm_name",
+                    multiple = TRUE,
+                    choices = c("cdm_name", "cohort_name", "variable_name", "variable_level", "estimate_name"),
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_count_ggplot2_10_colour",
+                    label = "colour",
+                    selected = NULL,
+                    multiple = TRUE,
+                    choices = c("cdm_name", "cohort_name", "variable_name", "variable_level", "estimate_name"),
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  position = "right"
+                ),
+                shiny::plotOutput("summarise_cohort_count_ggplot2_10")
+              )
+            )
+          )
+        )
+      )
+    )
+  ),
   # bslib::nav_panel(
   #   title = "Cohort Attrition",
   #   icon = shiny::icon("layer-group"),
@@ -1427,6 +1374,9 @@ ui <- bslib::page_navbar(
   #   )
   #),
   bslib::nav_spacer(),
+  bslib::nav_item(
+    shiny::downloadButton(outputId = "download_raw", label = "", icon = shiny::icon("download"))
+  ),
   bslib::nav_item(
     bslib::popover(
       shiny::icon("circle-info"),
