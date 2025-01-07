@@ -84,8 +84,9 @@ server <- function(input, output, session) {
     }
   )
 
+  # common pickers ----
+  keepPickers(panels = panels, pickers = pickers, input = input, session = session)
   # summarise_cohort_count -----
-  ## tidy summarise_cohort_count -----
   getTidyDataSummariseCohortCount <- shiny::reactive({
     result <- data |>
       filterData("summarise_cohort_count", input) 
@@ -120,23 +121,21 @@ server <- function(input, output, session) {
         readr::write_csv(file = file)
     }
   )
-  ## output summarise_cohort_count -----
-  ## output 9 -----
   createOutput9 <- shiny::reactive({
     result <- data |>
       filterData("summarise_cohort_count", input)
     CohortCharacteristics::tableCohortCount(
       result,
-      header = input$summarise_cohort_count_gt_9_header,
-      groupColumn = input$summarise_cohort_count_gt_9_groupColumn,
-      hide = input$summarise_cohort_count_gt_9_hide
+      header = input$summarise_cohort_count_gt_header,
+      groupColumn = input$summarise_cohort_count_gt_groupColumn,
+      hide = c(input$summarise_cohort_count_gt_hide, "variable_level", "table_name")
     )
   })
-  output$summarise_cohort_count_gt_9 <- gt::render_gt({
+  output$summarise_cohort_count_gt <- gt::render_gt({
     createOutput9()
   })
-  output$summarise_cohort_count_gt_9_download <- shiny::downloadHandler(
-    filename = paste0("output_gt_summarise_cohort_count.", input$summarise_cohort_count_gt_9_download_type),
+  output$summarise_cohort_count_gt_download <- shiny::downloadHandler(
+    filename = paste0("output_gt_summarise_cohort_count.", input$summarise_cohort_count_gt_download_type),
     content = function(file) {
       obj <- createOutput9()
       gt::gtsave(data = obj, filename = file)
@@ -225,7 +224,7 @@ server <- function(input, output, session) {
       result,
       header = input$summarise_cohort_attrition_gt_3_header,
       groupColumn = input$summarise_cohort_attrition_gt_3_groupColumn,
-      hide = input$summarise_cohort_attrition_gt_3_hide
+      hide = c(input$summarise_cohort_attrition_gt_3_hide, "variable_level")
     )
   })
   output$summarise_cohort_attrition_gt_3 <- gt::render_gt({

@@ -33,3 +33,5 @@ load(fileData)
 
 # source functions
 source(file.path(getwd(), "functions.R"))
+
+panels <- c("summarise_cohort_count", "summarise_cohort_attrition")

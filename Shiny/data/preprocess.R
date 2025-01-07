@@ -22,6 +22,20 @@ result <- result |>
 data <- prepareResult(result, resultList)
 filterValues <- defaultFilterValues(result, resultList)
 
+# delete settings of summarise_cohort_attrition
+set <- omopgenerics::settings(data$summarise_cohort_attrition)
+data$summarise_cohort_attrition <- data$summarise_cohort_attrition |>
+  dplyr::mutate(result_id = 3) |>
+  omopgenerics::newSummarisedResult(
+    settings = set |>
+      dplyr::select(
+        "result_type", "package_name", "package_version", "group", "strata",
+        "additional"
+      ) |>
+      dplyr::mutate(result_id = 3L) |>
+      dplyr::distinct()
+  )
+
 # cohort definitions
 cohortDefinitions <- readr::read_csv(
   file = file.path(getwd(), "data", "cohort_definitions.csv"), 
@@ -56,10 +70,17 @@ cohortDefinitions <- cohortDefinitions |>
 
 cohortNames <- unique(cohortDefinitions$cohort_name)
 cdmNames <- unique(result$cdm_name)
-
+panels <- c(
+  "summarise_cohort_count", "summarise_cohort_attrition", 
+  "summarise_cohort_overlap", "summarise_cohort_timing", 
+  "summarise_characteristics", "summarise_large_scale_characteristics"
+)
+pickers <- c("cdm_name", "grouping_cohort_name")
+  
 save(
   data, filterValues, cohortDefinitions, codelistDefinitions, cohortNames,
-  cdmNames, file = file.path(getwd(), "data", "shinyData.RData")
+  cdmNames, panels, pickers, 
+  file = file.path(getwd(), "data", "shinyData.RData")
 )
 
-rm(result, filterValues, resultList, data, cohortDefinitions, codelistDefinitions, cohortNames, cdmNames)
+rm(result, filterValues, resultList, data, cohortDefinitions, codelistDefinitions, cohortNames, cdmNames, panels, pickers)

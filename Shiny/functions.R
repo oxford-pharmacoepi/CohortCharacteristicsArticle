@@ -344,8 +344,8 @@ cdmCohortFilter <- function(prefix) {
   bslib::accordion_panel(
     title = shiny::tagList(
       "CDM instances and Cohort of interest",
-      bslib::popover(
-        trigger = shiny::icon("circle-info"),
+      bslib::tooltip(
+        shiny::icon("circle-info"),
         "Filtering cdm and/or cohort name will be applied to all result panels."
       )
     ),
@@ -367,4 +367,20 @@ cdmCohortFilter <- function(prefix) {
       options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
     )
   )
+}
+keepPickers <- function(panels, pickers, input, session) {
+  purrr::map(pickers, \(picker) {
+    purrr::map(panels, \(panel) {
+      nm <- paste0(panel, "_", picker)
+      shiny::observeEvent(input[[nm]], ignoreNULL = FALSE, {
+        purrr::map(panels[panels != panel], \(x) {
+          inputId <- paste0(x, "_", picker)
+          selected <- input[[nm]] %||% character()
+          shinyWidgets::updatePickerInput(
+            session = session, inputId = inputId, selected = selected
+          )
+        })
+      })
+    })
+  })
 }
