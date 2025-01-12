@@ -393,8 +393,9 @@ ui <- bslib::page_navbar(
       icon = shiny::icon("users-gear"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
+          shiny::p("NOTE: characterisation was only done for dementia cohort"),
           bslib::accordion(
-            cdmCohortFilter("summarise_characteristics"),
+            cdmCohortFilter("summarise_characteristics", FALSE),
             bslib::accordion_panel(
               title = "Variables and estimates",
               shinyWidgets::pickerInput(
@@ -574,24 +575,9 @@ ui <- bslib::page_navbar(
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
           bslib::accordion(
+            cdmCohortFilter("summarise_cohort_overlap"),
             bslib::accordion_panel(
-              title = "Grouping",
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_overlap_grouping_cdm_name",
-                label = "Cdm name",
-                choices = filterValues$summarise_cohort_overlap_grouping_cdm_name,
-                selected = filterValues$summarise_cohort_overlap_grouping_cdm_name,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              ),
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_overlap_grouping_cohort_name_reference",
-                label = "Cohort name reference",
-                choices = filterValues$summarise_cohort_overlap_grouping_cohort_name_reference,
-                selected = filterValues$summarise_cohort_overlap_grouping_cohort_name_reference,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              ),
+              title = "Overlap",
               shinyWidgets::pickerInput(
                 inputId = "summarise_cohort_overlap_grouping_cohort_name_comparator",
                 label = "Cohort name comparator",
@@ -599,10 +585,7 @@ ui <- bslib::page_navbar(
                 selected = filterValues$summarise_cohort_overlap_grouping_cohort_name_comparator,
                 multiple = TRUE,
                 options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            ),
-            bslib::accordion_panel(
-              title = "Variables",
+              ),
               shinyWidgets::pickerInput(
                 inputId = "summarise_cohort_overlap_variable_name",
                 label = "Variable name",
@@ -610,10 +593,7 @@ ui <- bslib::page_navbar(
                 selected = filterValues$summarise_cohort_overlap_variable_name,
                 multiple = TRUE,
                 options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            ),
-            bslib::accordion_panel(
-              title = "Estimates",
+              ),
               shinyWidgets::pickerInput(
                 inputId = "summarise_cohort_overlap_estimate_name",
                 label = "Estimate name",
@@ -683,7 +663,7 @@ ui <- bslib::page_navbar(
                     header = NULL,
                     sortable::add_rank_list(
                       text = "none",
-                      labels = c("cohort_name_reference", "cohort_name_comparator", "estimate_name"),
+                      labels = c("cohort_name", "cohort_name_comparator", "estimate_name"),
                       input_id = "summarise_cohort_overlap_gt_1_none"
                     ),
                     sortable::add_rank_list(
@@ -751,9 +731,9 @@ ui <- bslib::page_navbar(
                   shinyWidgets::pickerInput(
                     inputId = "summarise_cohort_overlap_ggplot2_2_facet",
                     label = "facet",
-                    selected = c("cdm_name", "cohort_name_reference"),
+                    selected = c("cdm_name", "cohort_name"),
                     multiple = TRUE,
-                    choices = c("cdm_name", "cohort_name_reference", "cohort_name_comparator", "variable_name", "variable_level", "estimate_name"),
+                    choices = c("cdm_name", "cohort_name", "cohort_name_comparator", "variable_name", "variable_level", "estimate_name"),
                     options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
                   ),
                   shiny::checkboxInput(

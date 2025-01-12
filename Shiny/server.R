@@ -272,6 +272,9 @@ server <- function(input, output, session) {
       visOmopResults::addSettings() |>
       visOmopResults::splitAll() |>
       dplyr::select(!"result_id")
+    
+    x <- sort(names(input))
+    print(x[startsWith(x, "summarise_cohort_overlap")])
 
     # columns to eliminate
     colsEliminate <- colnames(res)
@@ -470,7 +473,7 @@ server <- function(input, output, session) {
       visOmopResults::addSettings() |>
       visOmopResults::splitAll() |>
       dplyr::select(!"result_id")
-
+    
     # columns to eliminate
     colsEliminate <- colnames(res)
     colsEliminate <- colsEliminate[!colsEliminate %in% c(

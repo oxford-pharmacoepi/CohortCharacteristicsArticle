@@ -340,7 +340,29 @@ defaultFilterValues <- function(result, resultList) {
     }) |>
     purrr::flatten()
 }
-cdmCohortFilter <- function(prefix) {
+cdmCohortFilter <- function(prefix, cohort = TRUE) {
+  filters <- list(
+    shinyWidgets::pickerInput(
+      inputId = paste0(prefix, "_cdm_name"),
+      label = "CDM name",
+      choices = cdmNames,
+      selected = cdmNames[1],
+      multiple = TRUE,
+      options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+    )
+  )
+  if (cohort) {
+    filters <- c(filters, list(
+      shinyWidgets::pickerInput(
+        inputId = paste0(prefix, "_grouping_cohort_name"),
+        label = "Cohort name",
+        choices = cohortNames,
+        selected = cohortNames[1],
+        multiple = TRUE,
+        options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+      )
+    ))
+  }
   bslib::accordion_panel(
     title = shiny::tagList(
       "CDM instances and Cohort of interest",
@@ -350,22 +372,7 @@ cdmCohortFilter <- function(prefix) {
       )
     ),
     value = paste0(prefix, "_cdm_and_cohort"),
-    shinyWidgets::pickerInput(
-      inputId = paste0(prefix, "_cdm_name"),
-      label = "CDM name",
-      choices = cdmNames,
-      selected = cdmNames[1],
-      multiple = TRUE,
-      options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-    ),
-    shinyWidgets::pickerInput(
-      inputId = paste0(prefix, "_grouping_cohort_name"),
-      label = "Cohort name",
-      choices = cohortNames,
-      selected = cohortNames[1],
-      multiple = TRUE,
-      options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-    )
+    !!!filters
   )
 }
 keepPickers <- function(panels, pickers, input, session) {
@@ -373,12 +380,14 @@ keepPickers <- function(panels, pickers, input, session) {
     purrr::map(panels, \(panel) {
       nm <- paste0(panel, "_", picker)
       shiny::observeEvent(input[[nm]], ignoreNULL = FALSE, {
+        selected <- input[[nm]] %||% character()
         purrr::map(panels[panels != panel], \(x) {
           inputId <- paste0(x, "_", picker)
-          selected <- input[[nm]] %||% character()
-          shinyWidgets::updatePickerInput(
-            session = session, inputId = inputId, selected = selected
-          )
+          if (inputId %in% names(input)) {
+            shinyWidgets::updatePickerInput(
+              session = session, inputId = inputId, selected = selected
+            )
+          }
         })
       })
     })
