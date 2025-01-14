@@ -87,6 +87,7 @@ server <- function(input, output, session) {
   # common pickers ----
   keepPickers(panels = panels, pickers = pickers, input = input, session = session)
   # summarise_cohort_count -----
+  ## tidy summarise_cohort_count -----
   getTidyDataSummariseCohortCount <- shiny::reactive({
     result <- data |>
       filterData("summarise_cohort_count", input) 
@@ -121,6 +122,7 @@ server <- function(input, output, session) {
         readr::write_csv(file = file)
     }
   )
+  ## table summarise_cohort_count -----
   createOutput9 <- shiny::reactive({
     result <- data |>
       filterData("summarise_cohort_count", input)
@@ -141,8 +143,7 @@ server <- function(input, output, session) {
       gt::gtsave(data = obj, filename = file)
     }
   )
-
-  ## output 10 -----
+  ## plot summarise_cohort_count -----
   createOutput10 <- shiny::reactive({
     result <- data |>
       filterData("summarise_cohort_count", input)
@@ -169,8 +170,6 @@ server <- function(input, output, session) {
       )
     }
   )
-
-
   # summarise_cohort_attrition -----
   ## tidy summarise_cohort_attrition -----
   getTidyDataSummariseCohortAttrition <- shiny::reactive({
@@ -215,8 +214,7 @@ server <- function(input, output, session) {
         readr::write_csv(file = file)
     }
   )
-  ## output summarise_cohort_attrition -----
-  ## output 3 -----
+  ## table summarise_cohort_attrition -----
   createOutput3 <- shiny::reactive({
     result <- data |>
       filterData("summarise_cohort_attrition", input)
@@ -238,7 +236,7 @@ server <- function(input, output, session) {
     }
   )
 
-  ## output 4 -----
+  ## diagram summarise_cohort_attrition -----
   createOutput4 <- shiny::reactive({
     result <- data |>
       filterData("summarise_cohort_attrition", input)
@@ -272,11 +270,6 @@ server <- function(input, output, session) {
       visOmopResults::addSettings() |>
       visOmopResults::splitAll() |>
       dplyr::select(!"result_id")
-    
-    x <- sort(names(input))
-    print(x[startsWith(x, "summarise_cohort_overlap")])
-    print(res)
-    print(data$summarise_cohort_overlap)
 
     # columns to eliminate
     colsEliminate <- colnames(res)
@@ -313,11 +306,11 @@ server <- function(input, output, session) {
         readr::write_csv(file = file)
     }
   )
-  ## output summarise_cohort_overlap -----
-  ## output 1 -----
+  ## table summarise_cohort_overlap -----
   createOutput1 <- shiny::reactive({
     result <- data |>
-      filterData("summarise_cohort_overlap", input)
+      filterData("summarise_cohort_overlap", input) |>
+      cohortNameAddReference()
     CohortCharacteristics::tableCohortOverlap(
       result,
       uniqueCombinations = input$summarise_cohort_overlap_gt_1_uniqueCombinations,
@@ -337,10 +330,11 @@ server <- function(input, output, session) {
     }
   )
 
-  ## output 2 -----
+  ## plot summarise_cohort_overlap -----
   createOutput2 <- shiny::reactive({
     result <- data |>
-      filterData("summarise_cohort_overlap", input)
+      filterData("summarise_cohort_overlap", input) |>
+      cohortNameAddReference()
     CohortCharacteristics::plotCohortOverlap(
       result,
       facet = input$summarise_cohort_overlap_ggplot2_2_facet,
@@ -364,8 +358,6 @@ server <- function(input, output, session) {
       )
     }
   )
-
-
   # summarise_cohort_timing -----
   ## tidy summarise_cohort_timing -----
   getTidyDataSummariseCohortTiming <- shiny::reactive({
@@ -410,11 +402,11 @@ server <- function(input, output, session) {
         readr::write_csv(file = file)
     }
   )
-  ## output summarise_cohort_timing -----
-  ## output 5 -----
+  ## table summarise_cohort_timing -----
   createOutput5 <- shiny::reactive({
     result <- data |>
-      filterData("summarise_cohort_timing", input)
+      filterData("summarise_cohort_timing", input) |>
+      cohortNameAddReference()
     CohortCharacteristics::tableCohortTiming(
       result,
       uniqueCombinations = input$summarise_cohort_timing_gt_5_uniqueCombinations,
@@ -435,10 +427,11 @@ server <- function(input, output, session) {
     }
   )
 
-  ## output 6 -----
+  ## plot summarise_cohort_timing -----
   createOutput6 <- shiny::reactive({
     result <- data |>
-      filterData("summarise_cohort_timing", input)
+      filterData("summarise_cohort_timing", input) |>
+      cohortNameAddReference()
     CohortCharacteristics::plotCohortTiming(
       result,
       plotType = input$summarise_cohort_timing_ggplot2_6_plotType,
@@ -511,8 +504,7 @@ server <- function(input, output, session) {
         readr::write_csv(file = file)
     }
   )
-  ## output summarise_characteristics -----
-  ## output 7 -----
+  ## table summarise_characteristics -----
   createOutput7 <- shiny::reactive({
     result <- data |>
       filterData("summarise_characteristics", input)
@@ -534,7 +526,7 @@ server <- function(input, output, session) {
     }
   )
 
-  ## output 8 -----
+  ## plot summarise_characteristics -----
   createOutput8 <- shiny::reactive({
     result <- data |>
       filterData("summarise_characteristics", input)
@@ -606,28 +598,6 @@ server <- function(input, output, session) {
     content = function(file) {
       getTidyDataSummariseLargeScaleCharacteristics() |>
         readr::write_csv(file = file)
-    }
-  )
-  ## output summarise_large_scale_characteristics -----
-  ## output 0 -----
-  createOutput0 <- shiny::reactive({
-    result <- data |>
-      filterData("summarise_large_scale_characteristics", input)
-    simpleTable(
-      result,
-      header = input$summarise_large_scale_characteristics_gt_0_header,
-      group = input$summarise_large_scale_characteristics_gt_0_group,
-      hide = input$summarise_large_scale_characteristics_gt_0_hide
-    )
-  })
-  output$summarise_large_scale_characteristics_gt_0 <- gt::render_gt({
-    createOutput0()
-  })
-  output$summarise_large_scale_characteristics_gt_0_download <- shiny::downloadHandler(
-    filename = paste0("output_gt_summarise_large_scale_characteristics.", input$summarise_large_scale_characteristics_gt_0_download_type),
-    content = function(file) {
-      obj <- createOutput0()
-      gt::gtsave(data = obj, filename = file)
     }
   )
 }

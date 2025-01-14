@@ -177,7 +177,7 @@ ui <- bslib::page_navbar(
                     ),
                     sortable::add_rank_list(
                       text = "hide",
-                      labels = NULL,
+                      labels = character(),
                       input_id = "summarise_cohort_count_gt_hide"
                     )
                   ),
@@ -387,6 +387,402 @@ ui <- bslib::page_navbar(
         )
       )
     ),
+    # cohort overlap ----
+    bslib::nav_panel(
+      title = "Cohort overlap",
+      icon = shiny::icon("circle-half-stroke"),
+      bslib::layout_sidebar(
+        sidebar = bslib::sidebar(
+          bslib::accordion(
+            cdmCohortFilter("summarise_cohort_overlap"),
+            bslib::accordion_panel(
+              title = "Overlap",
+              shinyWidgets::pickerInput(
+                inputId = "summarise_cohort_overlap_grouping_cohort_name_comparator",
+                label = "Cohort name comparator",
+                choices = filterValues$summarise_cohort_overlap_grouping_cohort_name_comparator,
+                selected = filterValues$summarise_cohort_overlap_grouping_cohort_name_comparator,
+                multiple = TRUE,
+                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+              ),
+              shinyWidgets::pickerInput(
+                inputId = "summarise_cohort_overlap_variable_name",
+                label = "Variable name",
+                choices = filterValues$summarise_cohort_overlap_variable_name,
+                selected = filterValues$summarise_cohort_overlap_variable_name,
+                multiple = TRUE,
+                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+              ),
+              shinyWidgets::pickerInput(
+                inputId = "summarise_cohort_overlap_estimate_name",
+                label = "Estimate name",
+                choices = filterValues$summarise_cohort_overlap_estimate_name,
+                selected = filterValues$summarise_cohort_overlap_estimate_name,
+                multiple = TRUE,
+                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+              )
+            )
+          )
+        ),
+        bslib::navset_card_tab(
+          bslib::nav_panel(
+            title = "Tidy",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shiny::downloadButton(outputId = "summarise_cohort_overlap_tidy_download", label = "Download csv")
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_overlap_tidy_columns",
+                    label = "Columns",
+                    choices = filterValues$summarise_cohort_overlap_tidy_columns,
+                    selected = filterValues$summarise_cohort_overlap_tidy_columns,
+                    multiple = TRUE,
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shiny::radioButtons(
+                    inputId = "summarise_cohort_overlap_tidy_pivot",
+                    label = "Pivot estimates/variables",
+                    choices = c("none", "estimates", "estimates and variables"),
+                    selected = "none"
+                  ),
+                  position = "right"
+                ),
+                DT::dataTableOutput("summarise_cohort_overlap_tidy")
+              )
+            )
+          ),
+          bslib::nav_panel(
+            title = "Table cohort overlap",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_overlap_gt_1_download_type",
+                    label = "File type",
+                    selected = "docx",
+                    choices = c("docx", "png", "pdf", "html"),
+                    multiple = FALSE
+                  ),
+                  shiny::downloadButton(outputId = "summarise_cohort_overlap_gt_1_download", label = "Download")
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  sortable::bucket_list(
+                    header = NULL,
+                    sortable::add_rank_list(
+                      text = "none",
+                      labels = c("cohort_name_reference", "cohort_name_comparator", "estimate_name"),
+                      input_id = "summarise_cohort_overlap_gt_1_none"
+                    ),
+                    sortable::add_rank_list(
+                      text = "header",
+                      labels = "variable_name",
+                      input_id = "summarise_cohort_overlap_gt_1_header"
+                    ),
+                    sortable::add_rank_list(
+                      text = "groupColumn",
+                      labels = "cdm_name",
+                      input_id = "summarise_cohort_overlap_gt_1_groupColumn"
+                    ),
+                    sortable::add_rank_list(
+                      text = "hide",
+                      labels = c("variable_level", "overlap_by"),
+                      input_id = "summarise_cohort_overlap_gt_1_hide"
+                    )
+                  ),
+                  shiny::checkboxInput(
+                    inputId = "summarise_cohort_overlap_gt_1_uniqueCombinations",
+                    label = "uniqueCombinations",
+                    value = c(TRUE)
+                  ),
+                  position = "right"
+                ),
+                gt::gt_output("summarise_cohort_overlap_gt_1")
+              )
+            )
+          ),
+          bslib::nav_panel(
+            title = "Plot cohort overlap",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shiny::numericInput(
+                    inputId = "summarise_cohort_overlap_ggplot2_2_download_width",
+                    label = "Width",
+                    value = 15
+                  ),
+                  shiny::numericInput(
+                    inputId = "summarise_cohort_overlap_ggplot2_2_download_height",
+                    label = "Height",
+                    value = 10
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_overlap_ggplot2_2_download_units",
+                    label = "Units",
+                    selected = "cm",
+                    choices = c("px", "cm", "inch"),
+                    multiple = FALSE
+                  ),
+                  shiny::numericInput(
+                    inputId = "summarise_cohort_overlap_ggplot2_2_download_dpi",
+                    label = "dpi",
+                    value = 300
+                  ),
+                  shiny::downloadButton(outputId = "summarise_cohort_overlap_ggplot2_2_download", label = "Download")
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_overlap_ggplot2_2_facet",
+                    label = "facet",
+                    selected = c("cdm_name", "cohort_name_reference"),
+                    multiple = TRUE,
+                    choices = c("cdm_name", "cohort_name_reference", "cohort_name_comparator", "variable_name", "variable_level", "estimate_name"),
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shiny::checkboxInput(
+                    inputId = "summarise_cohort_overlap_ggplot2_2_uniqueCombinations",
+                    label = "uniqueCombinations",
+                    value = c(TRUE)
+                  ),
+                  position = "right"
+                ),
+                shiny::plotOutput("summarise_cohort_overlap_ggplot2_2")
+              )
+            )
+          )
+        )
+      )
+    ),
+    # cohort timing ----
+    bslib::nav_panel(
+      title = "Cohort timing",
+      icon = shiny::icon("chart-simple"),
+      bslib::layout_sidebar(
+        sidebar = bslib::sidebar(
+          bslib::accordion(
+            cdmCohortFilter("summarise_cohort_timing"),
+            bslib::accordion_panel(
+              title = "Timing",
+              shinyWidgets::pickerInput(
+                inputId = "summarise_cohort_timing_grouping_cohort_name_comparator",
+                label = "Cohort name comparator",
+                choices = filterValues$summarise_cohort_timing_grouping_cohort_name_comparator,
+                selected = filterValues$summarise_cohort_timing_grouping_cohort_name_comparator,
+                multiple = TRUE,
+                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+              ),
+              shinyWidgets::pickerInput(
+                inputId = "summarise_cohort_timing_variable_name",
+                label = "Variable name",
+                choices = filterValues$summarise_cohort_timing_variable_name,
+                selected = filterValues$summarise_cohort_timing_variable_name,
+                multiple = TRUE,
+                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+              ),
+              shinyWidgets::pickerInput(
+                inputId = "summarise_cohort_timing_estimate_name",
+                label = "Estimate name",
+                choices = filterValues$summarise_cohort_timing_estimate_name,
+                selected = filterValues$summarise_cohort_timing_estimate_name,
+                multiple = TRUE,
+                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+              )
+            )
+          )
+        ),
+        bslib::navset_card_tab(
+          bslib::nav_panel(
+            title = "Tidy",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shiny::downloadButton(outputId = "summarise_cohort_timing_tidy_download", label = "Download csv")
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_timing_tidy_columns",
+                    label = "Columns",
+                    choices = filterValues$summarise_cohort_timing_tidy_columns,
+                    selected = filterValues$summarise_cohort_timing_tidy_columns,
+                    multiple = TRUE,
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shiny::radioButtons(
+                    inputId = "summarise_cohort_timing_tidy_pivot",
+                    label = "Pivot estimates/variables",
+                    choices = c("none", "estimates", "estimates and variables"),
+                    selected = "none"
+                  ),
+                  position = "right"
+                ),
+                DT::dataTableOutput("summarise_cohort_timing_tidy")
+              )
+            )
+          ),
+          bslib::nav_panel(
+            title = "Table cohort timing",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_timing_gt_5_download_type",
+                    label = "File type",
+                    selected = "docx",
+                    choices = c("docx", "png", "pdf", "html"),
+                    multiple = FALSE
+                  ),
+                  shiny::downloadButton(outputId = "summarise_cohort_timing_gt_5_download", label = "Download")
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  sortable::bucket_list(
+                    header = NULL,
+                    sortable::add_rank_list(
+                      text = "none",
+                      labels = c("cdm_name", "cohort_name_reference", "cohort_name_comparator", "variable_name", "estimate_name"),
+                      input_id = "summarise_cohort_timing_gt_5_none"
+                    ),
+                    sortable::add_rank_list(
+                      text = "header",
+                      labels = character(),
+                      input_id = "summarise_cohort_timing_gt_5_header"
+                    ),
+                    sortable::add_rank_list(
+                      text = "groupColumn",
+                      labels = NULL,
+                      input_id = "summarise_cohort_timing_gt_5_groupColumn"
+                    ),
+                    sortable::add_rank_list(
+                      text = "hide",
+                      labels = "variable_level",
+                      input_id = "summarise_cohort_timing_gt_5_hide"
+                    )
+                  ),
+                  shiny::checkboxInput(
+                    inputId = "summarise_cohort_timing_gt_5_uniqueCombinations",
+                    label = "uniqueCombinations",
+                    value = c(TRUE)
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_timing_gt_5_timeScale",
+                    label = "timeScale",
+                    selected = "days",
+                    multiple = FALSE,
+                    choices = c("days", "years"),
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  position = "right"
+                ),
+                gt::gt_output("summarise_cohort_timing_gt_5")
+              )
+            )
+          ),
+          bslib::nav_panel(
+            title = "Plot cohort timing",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shiny::numericInput(
+                    inputId = "summarise_cohort_timing_ggplot2_6_download_width",
+                    label = "Width",
+                    value = 15
+                  ),
+                  shiny::numericInput(
+                    inputId = "summarise_cohort_timing_ggplot2_6_download_height",
+                    label = "Height",
+                    value = 10
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_timing_ggplot2_6_download_units",
+                    label = "Units",
+                    selected = "cm",
+                    choices = c("px", "cm", "inch"),
+                    multiple = FALSE
+                  ),
+                  shiny::numericInput(
+                    inputId = "summarise_cohort_timing_ggplot2_6_download_dpi",
+                    label = "dpi",
+                    value = 300
+                  ),
+                  shiny::downloadButton(outputId = "summarise_cohort_timing_ggplot2_6_download", label = "Download")
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_timing_ggplot2_6_plotType",
+                    label = "plotType",
+                    selected = "boxplot",
+                    multiple = FALSE,
+                    choices = c("boxplot", "densityplot"),
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_timing_ggplot2_6_timeScale",
+                    label = "timeScale",
+                    selected = "days",
+                    multiple = FALSE,
+                    choices = c("days", "years"),
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_timing_ggplot2_6_facet",
+                    label = "facet",
+                    selected = c("cdm_name", "cohort_name_reference"),
+                    multiple = TRUE,
+                    choices = c("cdm_name", "cohort_name_reference", "cohort_name_comparator", "variable_name", "variable_level", "estimate_name", "restrict_to_first_entry"),
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_cohort_timing_ggplot2_6_colour",
+                    label = "colour",
+                    selected = "cohort_name_comparator",
+                    multiple = TRUE,
+                    choices = c("cdm_name", "cohort_name_reference", "cohort_name_comparator", "variable_name", "variable_level", "estimate_name", "restrict_to_first_entry"),
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shiny::checkboxInput(
+                    inputId = "summarise_cohort_timing_ggplot2_6_uniqueCombinations",
+                    label = "uniqueCombinations",
+                    value = c(TRUE)
+                  ),
+                  position = "right"
+                ),
+                shiny::plotOutput("summarise_cohort_timing_ggplot2_6")
+              )
+            )
+          )
+        )
+      )
+    ),
     # cohort characteristics ----
     bslib::nav_panel(
       title = "Cohort characteristics",
@@ -540,7 +936,7 @@ ui <- bslib::page_navbar(
                     label = "plotStyle",
                     selected = "barplot",
                     multiple = FALSE,
-                    choices = c("boxplot", "barplot", "scatterplot"),
+                    choices = c("boxplot", "barplot"),
                     options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
                   ),
                   shinyWidgets::pickerInput(
@@ -568,434 +964,6 @@ ui <- bslib::page_navbar(
         )
       )
     ),
-    # cohort overlap ----
-    bslib::nav_panel(
-      title = "Cohort overlap",
-      icon = shiny::icon("circle-half-stroke"),
-      bslib::layout_sidebar(
-        sidebar = bslib::sidebar(
-          bslib::accordion(
-            cdmCohortFilter("summarise_cohort_overlap"),
-            bslib::accordion_panel(
-              title = "Overlap",
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_overlap_grouping_cohort_name_comparator",
-                label = "Cohort name comparator",
-                choices = filterValues$summarise_cohort_overlap_grouping_cohort_name_comparator,
-                selected = filterValues$summarise_cohort_overlap_grouping_cohort_name_comparator,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              ),
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_overlap_variable_name",
-                label = "Variable name",
-                choices = filterValues$summarise_cohort_overlap_variable_name,
-                selected = filterValues$summarise_cohort_overlap_variable_name,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              ),
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_overlap_estimate_name",
-                label = "Estimate name",
-                choices = filterValues$summarise_cohort_overlap_estimate_name,
-                selected = filterValues$summarise_cohort_overlap_estimate_name,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            )
-          )
-        ),
-        bslib::navset_card_tab(
-          bslib::nav_panel(
-            title = "Tidy",
-            bslib::card(
-              full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shiny::downloadButton(outputId = "summarise_cohort_overlap_tidy_download", label = "Download csv")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_overlap_tidy_columns",
-                    label = "Columns",
-                    choices = filterValues$summarise_cohort_overlap_tidy_columns,
-                    selected = filterValues$summarise_cohort_overlap_tidy_columns,
-                    multiple = TRUE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::radioButtons(
-                    inputId = "summarise_cohort_overlap_tidy_pivot",
-                    label = "Pivot estimates/variables",
-                    choices = c("none", "estimates", "estimates and variables"),
-                    selected = "none"
-                  ),
-                  position = "right"
-                ),
-                DT::dataTableOutput("summarise_cohort_overlap_tidy")
-              )
-            )
-          ),
-          bslib::nav_panel(
-            title = "Table cohort overlap",
-            bslib::card(
-              full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_overlap_gt_1_download_type",
-                    label = "File type",
-                    selected = "docx",
-                    choices = c("docx", "png", "pdf", "html"),
-                    multiple = FALSE
-                  ),
-                  shiny::downloadButton(outputId = "summarise_cohort_overlap_gt_1_download", label = "Download")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  sortable::bucket_list(
-                    header = NULL,
-                    sortable::add_rank_list(
-                      text = "none",
-                      labels = c("cohort_name", "cohort_name_comparator", "estimate_name"),
-                      input_id = "summarise_cohort_overlap_gt_1_none"
-                    ),
-                    sortable::add_rank_list(
-                      text = "header",
-                      labels = "variable_name",
-                      input_id = "summarise_cohort_overlap_gt_1_header"
-                    ),
-                    sortable::add_rank_list(
-                      text = "groupColumn",
-                      labels = "cdm_name",
-                      input_id = "summarise_cohort_overlap_gt_1_groupColumn"
-                    ),
-                    sortable::add_rank_list(
-                      text = "hide",
-                      labels = "variable_level",
-                      input_id = "summarise_cohort_overlap_gt_1_hide"
-                    )
-                  ),
-                  shiny::checkboxInput(
-                    inputId = "summarise_cohort_overlap_gt_1_uniqueCombinations",
-                    label = "uniqueCombinations",
-                    value = c(TRUE)
-                  ),
-                  position = "right"
-                ),
-                gt::gt_output("summarise_cohort_overlap_gt_1")
-              )
-            )
-          ),
-          bslib::nav_panel(
-            title = "Plot cohort overlap",
-            bslib::card(
-              full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shiny::numericInput(
-                    inputId = "summarise_cohort_overlap_ggplot2_2_download_width",
-                    label = "Width",
-                    value = 15
-                  ),
-                  shiny::numericInput(
-                    inputId = "summarise_cohort_overlap_ggplot2_2_download_height",
-                    label = "Height",
-                    value = 10
-                  ),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_overlap_ggplot2_2_download_units",
-                    label = "Units",
-                    selected = "cm",
-                    choices = c("px", "cm", "inch"),
-                    multiple = FALSE
-                  ),
-                  shiny::numericInput(
-                    inputId = "summarise_cohort_overlap_ggplot2_2_download_dpi",
-                    label = "dpi",
-                    value = 300
-                  ),
-                  shiny::downloadButton(outputId = "summarise_cohort_overlap_ggplot2_2_download", label = "Download")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_overlap_ggplot2_2_facet",
-                    label = "facet",
-                    selected = c("cdm_name", "cohort_name"),
-                    multiple = TRUE,
-                    choices = c("cdm_name", "cohort_name", "cohort_name_comparator", "variable_name", "variable_level", "estimate_name"),
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::checkboxInput(
-                    inputId = "summarise_cohort_overlap_ggplot2_2_uniqueCombinations",
-                    label = "uniqueCombinations",
-                    value = c(TRUE)
-                  ),
-                  position = "right"
-                ),
-                shiny::plotOutput("summarise_cohort_overlap_ggplot2_2")
-              )
-            )
-          )
-        )
-      )
-    ),
-    # cohort timing ----
-    bslib::nav_panel(
-      title = "Cohort timing",
-      icon = shiny::icon("chart-simple"),
-      bslib::layout_sidebar(
-        sidebar = bslib::sidebar(
-          bslib::accordion(
-            bslib::accordion_panel(
-              title = "Settings",
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_timing_settings_restrict_to_first_entry",
-                label = "Restrict to first entry",
-                choices = filterValues$summarise_cohort_timing_settings_restrict_to_first_entry,
-                selected = filterValues$summarise_cohort_timing_settings_restrict_to_first_entry,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            ),
-            bslib::accordion_panel(
-              title = "Grouping",
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_timing_grouping_cdm_name",
-                label = "Cdm name",
-                choices = filterValues$summarise_cohort_timing_grouping_cdm_name,
-                selected = filterValues$summarise_cohort_timing_grouping_cdm_name,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              ),
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_timing_grouping_cohort_name_reference",
-                label = "Cohort name reference",
-                choices = filterValues$summarise_cohort_timing_grouping_cohort_name_reference,
-                selected = filterValues$summarise_cohort_timing_grouping_cohort_name_reference,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              ),
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_timing_grouping_cohort_name_comparator",
-                label = "Cohort name comparator",
-                choices = filterValues$summarise_cohort_timing_grouping_cohort_name_comparator,
-                selected = filterValues$summarise_cohort_timing_grouping_cohort_name_comparator,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            ),
-            bslib::accordion_panel(
-              title = "Variables",
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_timing_variable_name",
-                label = "Variable name",
-                choices = filterValues$summarise_cohort_timing_variable_name,
-                selected = filterValues$summarise_cohort_timing_variable_name,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            ),
-            bslib::accordion_panel(
-              title = "Estimates",
-              shinyWidgets::pickerInput(
-                inputId = "summarise_cohort_timing_estimate_name",
-                label = "Estimate name",
-                choices = filterValues$summarise_cohort_timing_estimate_name,
-                selected = filterValues$summarise_cohort_timing_estimate_name,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            )
-          )
-        ),
-        bslib::navset_card_tab(
-          bslib::nav_panel(
-            title = "Tidy",
-            bslib::card(
-              full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shiny::downloadButton(outputId = "summarise_cohort_timing_tidy_download", label = "Download csv")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_timing_tidy_columns",
-                    label = "Columns",
-                    choices = filterValues$summarise_cohort_timing_tidy_columns,
-                    selected = filterValues$summarise_cohort_timing_tidy_columns,
-                    multiple = TRUE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::radioButtons(
-                    inputId = "summarise_cohort_timing_tidy_pivot",
-                    label = "Pivot estimates/variables",
-                    choices = c("none", "estimates", "estimates and variables"),
-                    selected = "none"
-                  ),
-                  position = "right"
-                ),
-                DT::dataTableOutput("summarise_cohort_timing_tidy")
-              )
-            )
-          ),
-          bslib::nav_panel(
-            title = "Table cohort timing",
-            bslib::card(
-              full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_timing_gt_5_download_type",
-                    label = "File type",
-                    selected = "docx",
-                    choices = c("docx", "png", "pdf", "html"),
-                    multiple = FALSE
-                  ),
-                  shiny::downloadButton(outputId = "summarise_cohort_timing_gt_5_download", label = "Download")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  sortable::bucket_list(
-                    header = NULL,
-                    sortable::add_rank_list(
-                      text = "none",
-                      labels = c("cdm_name", "cohort_name_reference", "cohort_name_comparator", "variable_name", "estimate_name"),
-                      input_id = "summarise_cohort_timing_gt_5_none"
-                    ),
-                    sortable::add_rank_list(
-                      text = "header",
-                      labels = character(),
-                      input_id = "summarise_cohort_timing_gt_5_header"
-                    ),
-                    sortable::add_rank_list(
-                      text = "groupColumn",
-                      labels = NULL,
-                      input_id = "summarise_cohort_timing_gt_5_groupColumn"
-                    ),
-                    sortable::add_rank_list(
-                      text = "hide",
-                      labels = "variable_level",
-                      input_id = "summarise_cohort_timing_gt_5_hide"
-                    )
-                  ),
-                  shiny::checkboxInput(
-                    inputId = "summarise_cohort_timing_gt_5_uniqueCombinations",
-                    label = "uniqueCombinations",
-                    value = c(TRUE)
-                  ),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_timing_gt_5_timeScale",
-                    label = "timeScale",
-                    selected = "days",
-                    multiple = FALSE,
-                    choices = c("days", "years"),
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  position = "right"
-                ),
-                gt::gt_output("summarise_cohort_timing_gt_5")
-              )
-            )
-          ),
-          bslib::nav_panel(
-            title = "Plot cohort timing",
-            bslib::card(
-              full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shiny::numericInput(
-                    inputId = "summarise_cohort_timing_ggplot2_6_download_width",
-                    label = "Width",
-                    value = 15
-                  ),
-                  shiny::numericInput(
-                    inputId = "summarise_cohort_timing_ggplot2_6_download_height",
-                    label = "Height",
-                    value = 10
-                  ),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_timing_ggplot2_6_download_units",
-                    label = "Units",
-                    selected = "cm",
-                    choices = c("px", "cm", "inch"),
-                    multiple = FALSE
-                  ),
-                  shiny::numericInput(
-                    inputId = "summarise_cohort_timing_ggplot2_6_download_dpi",
-                    label = "dpi",
-                    value = 300
-                  ),
-                  shiny::downloadButton(outputId = "summarise_cohort_timing_ggplot2_6_download", label = "Download")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_timing_ggplot2_6_plotType",
-                    label = "plotType",
-                    selected = "boxplot",
-                    multiple = FALSE,
-                    choices = c("boxplot", "density"),
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_timing_ggplot2_6_timeScale",
-                    label = "timeScale",
-                    selected = "days",
-                    multiple = FALSE,
-                    choices = c("days", "years"),
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_timing_ggplot2_6_facet",
-                    label = "facet",
-                    selected = c("cdm_name", "cohort_name_reference"),
-                    multiple = TRUE,
-                    choices = c("cdm_name", "cohort_name_reference", "cohort_name_comparator", "variable_name", "variable_level", "estimate_name", "restrict_to_first_entry"),
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_cohort_timing_ggplot2_6_colour",
-                    label = "colour",
-                    selected = "cohort_name_comparator",
-                    multiple = TRUE,
-                    choices = c("cdm_name", "cohort_name_reference", "cohort_name_comparator", "variable_name", "variable_level", "estimate_name", "restrict_to_first_entry"),
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::checkboxInput(
-                    inputId = "summarise_cohort_timing_ggplot2_6_uniqueCombinations",
-                    label = "uniqueCombinations",
-                    value = c(TRUE)
-                  ),
-                  position = "right"
-                ),
-                shiny::plotOutput("summarise_cohort_timing_ggplot2_6")
-              )
-            )
-          )
-        )
-      )
-    ),
     # large scale characteristics ----
     bslib::nav_panel(
       title = "Large Scale Characteristics",
@@ -1008,14 +976,6 @@ ui <- bslib::page_navbar(
             cdmCohortFilter("summarise_large_scale_characteristics", FALSE),
             bslib::accordion_panel(
               title = "Settings",
-              shinyWidgets::pickerInput(
-                inputId = "summarise_large_scale_characteristics_settings_analysis",
-                label = "Analysis",
-                choices = filterValues$summarise_large_scale_characteristics_settings_analysis,
-                selected = filterValues$summarise_large_scale_characteristics_settings_analysis,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              ),
               shinyWidgets::pickerInput(
                 inputId = "summarise_large_scale_characteristics_settings_table_name",
                 label = "Table name",
@@ -1074,55 +1034,6 @@ ui <- bslib::page_navbar(
                   position = "right"
                 ),
                 DT::dataTableOutput("summarise_large_scale_characteristics_tidy")
-              )
-            )
-          ),
-          bslib::nav_panel(
-            title = "Formatted",
-            bslib::card(
-              full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_large_scale_characteristics_gt_0_download_type",
-                    label = "File type",
-                    selected = "docx",
-                    choices = c("docx", "png", "pdf", "html"),
-                    multiple = FALSE
-                  ),
-                  shiny::downloadButton(outputId = "summarise_large_scale_characteristics_gt_0_download", label = "Download")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  sortable::bucket_list(
-                    header = NULL,
-                    sortable::add_rank_list(
-                      text = "none",
-                      labels = c("concept_id", "variable_name", "variable_level", "estimate_name", "analysis", "table_name", "type"),
-                      input_id = "summarise_large_scale_characteristics_gt_0_none"
-                    ),
-                    sortable::add_rank_list(
-                      text = "header",
-                      labels = "cdm_name",
-                      input_id = "summarise_large_scale_characteristics_gt_0_header"
-                    ),
-                    sortable::add_rank_list(
-                      text = "group",
-                      labels = "cohort_name",
-                      input_id = "summarise_large_scale_characteristics_gt_0_group"
-                    ),
-                    sortable::add_rank_list(
-                      text = "hide",
-                      labels = character(),
-                      input_id = "summarise_large_scale_characteristics_gt_0_hide"
-                    )
-                  ),
-                  position = "right"
-                ),
-                gt::gt_output("summarise_large_scale_characteristics_gt_0")
               )
             )
           )

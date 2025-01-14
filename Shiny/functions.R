@@ -400,3 +400,11 @@ keepPickers <- function(panels, pickers, input, session) {
     })
   })
 }
+cohortNameAddReference <- function(x) {
+  x |>
+    omopgenerics::splitGroup() |>
+    dplyr::rename("cohort_name_reference" = "cohort_name") |>
+    omopgenerics::uniteGroup(cols = c("cohort_name_reference", "cohort_name_comparator")) |>
+    omopgenerics::newSummarisedResult(settings = omopgenerics::settings(x) |> 
+                                        dplyr::select(!"group"))
+}

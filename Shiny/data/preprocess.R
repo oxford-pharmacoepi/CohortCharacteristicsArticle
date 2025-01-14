@@ -30,7 +30,6 @@ resultList <- c(
   purrr::map(\(x) set$result_id[set$result_type == x])
 
 data <- prepareResult(result, resultList)
-filterValues <- defaultFilterValues(result, resultList)
 
 # delete settings of summarise_cohort_attrition
 set <- omopgenerics::settings(data$summarise_cohort_attrition)
@@ -44,6 +43,14 @@ data$summarise_cohort_attrition <- data$summarise_cohort_attrition |>
       ) |>
       dplyr::mutate(result_id = 3L) |>
       dplyr::distinct()
+  )
+
+# prepare cohort_characteristics
+data$summarise_characteristics <- data$summarise_characteristics |>
+  dplyr::mutate(additional_name = "overall", additional_level = "overall") |>
+  omopgenerics::newSummarisedResult(
+    settings = omopgenerics::settings(data$summarise_characteristics) |>
+      dplyr::mutate(additional = "")
   )
 
 # cohort definitions
@@ -86,7 +93,9 @@ panels <- c(
   "summarise_characteristics", "summarise_large_scale_characteristics"
 )
 pickers <- c("cdm_name", "grouping_cohort_name")
-  
+
+filterValues <- defaultFilterValues(result, resultList)
+
 save(
   data, filterValues, cohortDefinitions, codelistDefinitions, cohortNames,
   cdmNames, panels, pickers, 
