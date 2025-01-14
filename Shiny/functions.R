@@ -2,6 +2,9 @@ filterData <- function(result,
                        prefix,
                        input) {
   result <- result[[prefix]]
+  
+  debug <- FALSE
+  debug <- prefix == "summarise_cohort_overlap"
 
   if (nrow(result) == 0) {
     return(omopgenerics::emptySummarisedResult())
@@ -267,7 +270,7 @@ simpleTable <- function(result,
     visOmopResults::formatEstimateValue(
       decimals = c(integer = 0, numeric = 1, percentage = 0)
     ) |>
-    visOmopResults::formatEstimateName(estimateNameFormat = formatEstimates) |>
+    visOmopResults::formatEstimateName(estimateName = formatEstimates) |>
     suppressMessages() |>
     visOmopResults::formatHeader(header = header) |>
     dplyr::select(!dplyr::any_of(c("estimate_type", hide)))
@@ -379,16 +382,20 @@ keepPickers <- function(panels, pickers, input, session) {
   purrr::map(pickers, \(picker) {
     purrr::map(panels, \(panel) {
       nm <- paste0(panel, "_", picker)
-      shiny::observeEvent(input[[nm]], ignoreNULL = FALSE, {
-        selected <- input[[nm]] %||% character()
-        purrr::map(panels[panels != panel], \(x) {
-          inputId <- paste0(x, "_", picker)
-          if (inputId %in% names(input)) {
-            shinyWidgets::updatePickerInput(
-              session = session, inputId = inputId, selected = selected
-            )
-          }
-        })
+      shiny::reactive({
+        if (nm %in% names(input)) {
+          shiny::observeEvent(input[[nm]], ignoreNULL = FALSE, {
+            selected <- input[[nm]] %||% character()
+            purrr::map(panels[panels != panel], \(x) {
+              inputId <- paste0(x, "_", picker)
+              if (inputId %in% names(input)) {
+                shinyWidgets::updatePickerInput(
+                  session = session, inputId = inputId, selected = selected
+                )
+              }
+            })
+          })
+        }
       })
     })
   })

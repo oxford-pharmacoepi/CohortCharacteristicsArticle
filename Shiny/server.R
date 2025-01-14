@@ -275,6 +275,8 @@ server <- function(input, output, session) {
     
     x <- sort(names(input))
     print(x[startsWith(x, "summarise_cohort_overlap")])
+    print(res)
+    print(data$summarise_cohort_overlap)
 
     # columns to eliminate
     colsEliminate <- colnames(res)

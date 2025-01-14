@@ -13,6 +13,10 @@ result <- result |>
       .data$group_name, "cohort_name_reference", "cohort_name"
     )
   )
+attr(result, "settings") <- attr(result, "settings") |>
+  dplyr::mutate(group = stringr::str_replace_all(
+    .data$group, "cohort_name_reference", "cohort_name"
+  ))
 
 # shiny is prepared to work with this resultList, please do not change them
 set <- omopgenerics::settings(result)

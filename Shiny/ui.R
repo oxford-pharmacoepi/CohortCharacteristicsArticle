@@ -1002,7 +1002,10 @@ ui <- bslib::page_navbar(
       icon = shiny::icon("arrow-up-right-dots"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
+          shiny::p("NOTE: characterisation was only done for dementia cohort"),
           bslib::accordion(
+            open = FALSE,
+            cdmCohortFilter("summarise_large_scale_characteristics", FALSE),
             bslib::accordion_panel(
               title = "Settings",
               shinyWidgets::pickerInput(
@@ -1028,48 +1031,7 @@ ui <- bslib::page_navbar(
                 selected = filterValues$summarise_large_scale_characteristics_settings_type,
                 multiple = TRUE,
                 options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            ),
-            bslib::accordion_panel(
-              title = "Grouping",
-              shinyWidgets::pickerInput(
-                inputId = "summarise_large_scale_characteristics_grouping_cdm_name",
-                label = "Cdm name",
-                choices = filterValues$summarise_large_scale_characteristics_grouping_cdm_name,
-                selected = filterValues$summarise_large_scale_characteristics_grouping_cdm_name,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
               ),
-              shinyWidgets::pickerInput(
-                inputId = "summarise_large_scale_characteristics_grouping_cohort_name",
-                label = "Cohort name",
-                choices = filterValues$summarise_large_scale_characteristics_grouping_cohort_name,
-                selected = filterValues$summarise_large_scale_characteristics_grouping_cohort_name,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              ),
-              shinyWidgets::pickerInput(
-                inputId = "summarise_large_scale_characteristics_grouping_concept_id",
-                label = "Concept id",
-                choices = filterValues$summarise_large_scale_characteristics_grouping_concept_id,
-                selected = filterValues$summarise_large_scale_characteristics_grouping_concept_id,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            ),
-            bslib::accordion_panel(
-              title = "Variables",
-              shinyWidgets::pickerInput(
-                inputId = "summarise_large_scale_characteristics_variable_name",
-                label = "Variable name",
-                choices = filterValues$summarise_large_scale_characteristics_variable_name,
-                selected = filterValues$summarise_large_scale_characteristics_variable_name,
-                multiple = TRUE,
-                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-              )
-            ),
-            bslib::accordion_panel(
-              title = "Estimates",
               shinyWidgets::pickerInput(
                 inputId = "summarise_large_scale_characteristics_estimate_name",
                 label = "Estimate name",
