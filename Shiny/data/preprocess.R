@@ -1,13 +1,3 @@
-# shiny is prepared to work with this resultList, please do not change them
-resultList <- list(
-  "summarise_omop_snapshot" = c(1L),
-  "summarise_cohort_count" = c(2L),
-  "summarise_cohort_attrition" = c(3L, 4L, 5L, 6L, 7L),
-  "summarise_cohort_overlap" = c(8L),
-  "summarise_cohort_timing" = c(9L),
-  "summarise_characteristics" = c(10L),
-  "summarise_large_scale_characteristics" = c(11L, 12L)
-)
 
 source(file.path(getwd(), "functions.R"))
 
@@ -16,12 +6,31 @@ result <- omopgenerics::importSummarisedResult(file.path(getwd(), "data")) |>
   dplyr::mutate(dplyr::across(dplyr::everything(),\(x) iconv(x, from = "", to = "UTF-8", sub = "")))
 # correct any_antipsychotics
 result <- result |>
-  dplyr::mutate(group_level = stringr::str_replace_all(
-    .data$group_level, "any_antipsychotic", "any_antipsychotics"
+  dplyr::mutate(
+    group_level = stringr::str_replace_all(
+      .data$group_level, "any_antipsychotic", "any_antipsychotics"
+    ),
+    group_name = stringr::str_replace_all(
+      .data$group_name, "cohort_name_reference", "cohort_name"
+    )
+  )
+attr(result, "settings") <- attr(result, "settings") |>
+  dplyr::mutate(group = stringr::str_replace_all(
+    .data$group, "cohort_name_reference", "cohort_name"
   ))
 
+# shiny is prepared to work with this resultList, please do not change them
+set <- omopgenerics::settings(result)
+resultList <- c(
+  "summarise_omop_snapshot", "summarise_cohort_count", 
+  "summarise_cohort_attrition","summarise_cohort_overlap",
+  "summarise_cohort_timing", "summarise_characteristics",
+  "summarise_large_scale_characteristics"
+) |>
+  rlang::set_names() |>
+  purrr::map(\(x) set$result_id[set$result_type == x])
+
 data <- prepareResult(result, resultList)
-filterValues <- defaultFilterValues(result, resultList)
 
 # delete settings of summarise_cohort_attrition
 set <- omopgenerics::settings(data$summarise_cohort_attrition)
@@ -31,10 +40,18 @@ data$summarise_cohort_attrition <- data$summarise_cohort_attrition |>
     settings = set |>
       dplyr::select(
         "result_type", "package_name", "package_version", "group", "strata",
-        "additional"
+        "additional", "min_cell_count"
       ) |>
       dplyr::mutate(result_id = 3L) |>
       dplyr::distinct()
+  )
+
+# prepare cohort_characteristics
+data$summarise_characteristics <- data$summarise_characteristics |>
+  dplyr::mutate(additional_name = "overall", additional_level = "overall") |>
+  omopgenerics::newSummarisedResult(
+    settings = omopgenerics::settings(data$summarise_characteristics) |>
+      dplyr::mutate(additional = "")
   )
 
 # cohort definitions
@@ -77,11 +94,13 @@ panels <- c(
   "summarise_characteristics", "summarise_large_scale_characteristics"
 )
 pickers <- c("cdm_name", "grouping_cohort_name")
-  
+
+filterValues <- defaultFilterValues(result, resultList)
+
 save(
   data, filterValues, cohortDefinitions, codelistDefinitions, cohortNames,
   cdmNames, panels, pickers, 
   file = file.path(getwd(), "data", "shinyData.RData")
 )
 
-rm(result, filterValues, resultList, data, cohortDefinitions, codelistDefinitions, cohortNames, cdmNames, panels, pickers)
+rm(result, filterValues, resultList, data, cohortDefinitions, codelistDefinitions, cohortNames, cdmNames, panels, pickers, set)

@@ -2,6 +2,9 @@ filterData <- function(result,
                        prefix,
                        input) {
   result <- result[[prefix]]
+  
+  debug <- FALSE
+  debug <- prefix == "summarise_cohort_overlap"
 
   if (nrow(result) == 0) {
     return(omopgenerics::emptySummarisedResult())
@@ -267,7 +270,7 @@ simpleTable <- function(result,
     visOmopResults::formatEstimateValue(
       decimals = c(integer = 0, numeric = 1, percentage = 0)
     ) |>
-    visOmopResults::formatEstimateName(estimateNameFormat = formatEstimates) |>
+    visOmopResults::formatEstimateName(estimateName = formatEstimates) |>
     suppressMessages() |>
     visOmopResults::formatHeader(header = header) |>
     dplyr::select(!dplyr::any_of(c("estimate_type", hide)))
@@ -340,7 +343,29 @@ defaultFilterValues <- function(result, resultList) {
     }) |>
     purrr::flatten()
 }
-cdmCohortFilter <- function(prefix) {
+cdmCohortFilter <- function(prefix, cohort = TRUE) {
+  filters <- list(
+    shinyWidgets::pickerInput(
+      inputId = paste0(prefix, "_cdm_name"),
+      label = "CDM name",
+      choices = cdmNames,
+      selected = cdmNames[1],
+      multiple = TRUE,
+      options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+    )
+  )
+  if (cohort) {
+    filters <- c(filters, list(
+      shinyWidgets::pickerInput(
+        inputId = paste0(prefix, "_grouping_cohort_name"),
+        label = "Cohort name",
+        choices = cohortNames,
+        selected = cohortNames[1],
+        multiple = TRUE,
+        options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+      )
+    ))
+  }
   bslib::accordion_panel(
     title = shiny::tagList(
       "CDM instances and Cohort of interest",
@@ -350,37 +375,36 @@ cdmCohortFilter <- function(prefix) {
       )
     ),
     value = paste0(prefix, "_cdm_and_cohort"),
-    shinyWidgets::pickerInput(
-      inputId = paste0(prefix, "_cdm_name"),
-      label = "CDM name",
-      choices = cdmNames,
-      selected = cdmNames[1],
-      multiple = TRUE,
-      options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-    ),
-    shinyWidgets::pickerInput(
-      inputId = paste0(prefix, "_grouping_cohort_name"),
-      label = "Cohort name",
-      choices = cohortNames,
-      selected = cohortNames[1],
-      multiple = TRUE,
-      options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-    )
+    !!!filters
   )
 }
 keepPickers <- function(panels, pickers, input, session) {
   purrr::map(pickers, \(picker) {
     purrr::map(panels, \(panel) {
       nm <- paste0(panel, "_", picker)
-      shiny::observeEvent(input[[nm]], ignoreNULL = FALSE, {
-        purrr::map(panels[panels != panel], \(x) {
-          inputId <- paste0(x, "_", picker)
-          selected <- input[[nm]] %||% character()
-          shinyWidgets::updatePickerInput(
-            session = session, inputId = inputId, selected = selected
-          )
-        })
+      shiny::reactive({
+        if (nm %in% names(input)) {
+          shiny::observeEvent(input[[nm]], ignoreNULL = FALSE, {
+            selected <- input[[nm]] %||% character()
+            purrr::map(panels[panels != panel], \(x) {
+              inputId <- paste0(x, "_", picker)
+              if (inputId %in% names(input)) {
+                shinyWidgets::updatePickerInput(
+                  session = session, inputId = inputId, selected = selected
+                )
+              }
+            })
+          })
+        }
       })
     })
   })
+}
+cohortNameAddReference <- function(x) {
+  x |>
+    omopgenerics::splitGroup() |>
+    dplyr::rename("cohort_name_reference" = "cohort_name") |>
+    omopgenerics::uniteGroup(cols = c("cohort_name_reference", "cohort_name_comparator")) |>
+    omopgenerics::newSummarisedResult(settings = omopgenerics::settings(x) |> 
+                                        dplyr::select(!"group"))
 }
