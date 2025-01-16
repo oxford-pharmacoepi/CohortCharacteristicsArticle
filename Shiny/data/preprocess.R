@@ -11,8 +11,9 @@ resultList <- list(
 
 source(file.path(getwd(), "functions.R"))
 
-result <- omopgenerics::importSummarisedResult(file.path(getwd(), "data"))
 
+result <- omopgenerics::importSummarisedResult(file.path(getwd(), "data")) |> 
+  dplyr::mutate(dplyr::across(dplyr::everything(),\(x) iconv(x, from = "", to = "UTF-8", sub = "")))
 # correct any_antipsychotics
 result <- result |>
   dplyr::mutate(group_level = stringr::str_replace_all(
